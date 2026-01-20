@@ -1,0 +1,246 @@
+{
+  "samples": [
+    {
+      "id": "uniform_phase",
+      "level": 1,
+      "category": "foundations",
+      "name": "Uniform Phase",
+      "description": "Zero phase everywhere - baseline reference showing unmodified Gaussian",
+      "phase_gif": "assets/L1/uniform_phase_phase.gif",
+      "intensity_gif": "assets/L1/uniform_phase_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spot_sweep_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Single Spot Sweep (X)",
+      "description": "Spot moves left to right - observe phase ramp tilting",
+      "phase_gif": "assets/L1/spot_sweep_x_phase.gif",
+      "intensity_gif": "assets/L1/spot_sweep_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spot_sweep_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Single Spot Sweep (Y)",
+      "description": "Spot moves bottom to top - vertical phase ramp",
+      "phase_gif": "assets/L1/spot_sweep_y_phase.gif",
+      "intensity_gif": "assets/L1/spot_sweep_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spot_circular",
+      "level": 1,
+      "category": "foundations",
+      "name": "Single Spot Circular",
+      "description": "Spot moves in circle - phase ramp rotates",
+      "phase_gif": "assets/L1/spot_circular_phase.gif",
+      "intensity_gif": "assets/L1/spot_circular_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "gaussian_spot_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Gaussian Spot Sweep",
+      "description": "Soft Gaussian spot - no sinc ringing due to smooth edges",
+      "phase_gif": "assets/L1/gaussian_spot_sweep_phase.gif",
+      "intensity_gif": "assets/L1/gaussian_spot_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "slab_sweep_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Rectangular Slab Sweep (X)",
+      "description": "Rectangle moves horizontally - observe sinc envelope",
+      "phase_gif": "assets/L1/slab_sweep_x_phase.gif",
+      "intensity_gif": "assets/L1/slab_sweep_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "slab_sweep_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Rectangular Slab Sweep (Y)",
+      "description": "Rectangle moves vertically - sinc in orthogonal direction",
+      "phase_gif": "assets/L1/slab_sweep_y_phase.gif",
+      "intensity_gif": "assets/L1/slab_sweep_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "linear_ramp_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Linear Ramp (X)",
+      "description": "Phase gradient in X shifts beam horizontally in Fourier plane",
+      "phase_gif": "assets/L1/linear_ramp_x_phase.gif",
+      "intensity_gif": "assets/L1/linear_ramp_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "linear_ramp_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Linear Ramp (Y)",
+      "description": "Phase gradient in Y shifts beam vertically in Fourier plane",
+      "phase_gif": "assets/L1/linear_ramp_y_phase.gif",
+      "intensity_gif": "assets/L1/linear_ramp_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "linear_ramp_diagonal",
+      "level": 1,
+      "category": "foundations",
+      "name": "Linear Ramp (Diagonal)",
+      "description": "Phase ramp direction rotates from X toward diagonal",
+      "phase_gif": "assets/L1/linear_ramp_diagonal_phase.gif",
+      "intensity_gif": "assets/L1/linear_ramp_diagonal_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "quadratic_positive",
+      "level": 1,
+      "category": "foundations",
+      "name": "Quadratic Phase (+)",
+      "description": "Positive curvature (converging lens) - ring pattern expands",
+      "phase_gif": "assets/L1/quadratic_positive_phase.gif",
+      "intensity_gif": "assets/L1/quadratic_positive_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "quadratic_negative",
+      "level": 1,
+      "category": "foundations",
+      "name": "Quadratic Phase (-)",
+      "description": "Negative curvature (diverging lens) - ring pattern",
+      "phase_gif": "assets/L1/quadratic_negative_phase.gif",
+      "intensity_gif": "assets/L1/quadratic_negative_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "cubic_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Cubic Phase (X)",
+      "description": "Cubic phase in X - Airy-like asymmetric pattern",
+      "phase_gif": "assets/L1/cubic_x_phase.gif",
+      "intensity_gif": "assets/L1/cubic_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "cubic_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Cubic Phase (Y)",
+      "description": "Cubic phase in Y - rotated Airy pattern",
+      "phase_gif": "assets/L1/cubic_y_phase.gif",
+      "intensity_gif": "assets/L1/cubic_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "coherent_aperture",
+      "level": 1,
+      "category": "foundations",
+      "name": "Coherent Aperture Size",
+      "description": "Varying coherent region size - smaller aperture = larger spot (Fourier relationship)",
+      "phase_gif": "assets/L1/coherent_aperture_phase.gif",
+      "intensity_gif": "assets/L1/coherent_aperture_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "soft_aperture",
+      "level": 1,
+      "category": "foundations",
+      "name": "Soft Aperture Edge",
+      "description": "Edge smoothness sweep - softer edges reduce ringing/sidelobes",
+      "phase_gif": "assets/L1/soft_aperture_phase.gif",
+      "intensity_gif": "assets/L1/soft_aperture_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "binary_grating_vertical",
+      "level": 2,
+      "category": "periodic",
+      "name": "Binary Grating (Vertical)",
+      "description": "Vertical binary grating - period decreases, diffraction orders separate",
+      "phase_gif": "assets/L2/binary_grating_vertical_phase.gif",
+      "intensity_gif": "assets/L2/binary_grating_vertical_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "binary_grating_horizontal",
+      "level": 2,
+      "category": "periodic",
+      "name": "Binary Grating (Horizontal)",
+      "description": "Horizontal binary grating - diffraction in vertical direction",
+      "phase_gif": "assets/L2/binary_grating_horizontal_phase.gif",
+      "intensity_gif": "assets/L2/binary_grating_horizontal_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "binary_grating_rotated",
+      "level": 2,
+      "category": "periodic",
+      "name": "Binary Grating (Rotating)",
+      "description": "Binary grating rotates 0\u00b0 to 90\u00b0 - watch diffraction spots rotate",
+      "phase_gif": "assets/L2/binary_grating_rotated_phase.gif",
+      "intensity_gif": "assets/L2/binary_grating_rotated_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "sinusoidal_grating",
+      "level": 2,
+      "category": "periodic",
+      "name": "Sinusoidal Grating",
+      "description": "Sinusoidal phase grating - only \u00b11 orders, no higher harmonics",
+      "phase_gif": "assets/L2/sinusoidal_grating_phase.gif",
+      "intensity_gif": "assets/L2/sinusoidal_grating_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "blazed_grating",
+      "level": 2,
+      "category": "periodic",
+      "name": "Blazed Grating",
+      "description": "Sawtooth phase grating - asymmetric diffraction, power in +1 order",
+      "phase_gif": "assets/L2/blazed_grating_phase.gif",
+      "intensity_gif": "assets/L2/blazed_grating_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "checkerboard",
+      "level": 2,
+      "category": "periodic",
+      "name": "Checkerboard",
+      "description": "2D periodic pattern - 4-spot diffraction pattern",
+      "phase_gif": "assets/L2/checkerboard_phase.gif",
+      "intensity_gif": "assets/L2/checkerboard_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "crossed_gratings",
+      "level": 2,
+      "category": "periodic",
+      "name": "Crossed Gratings",
+      "description": "Two perpendicular gratings - XOR pattern creates grid diffraction",
+      "phase_gif": "assets/L2/crossed_gratings_phase.gif",
+      "intensity_gif": "assets/L2/crossed_gratings_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "multi_frequency_grating",
+      "level": 2,
+      "category": "periodic",
+      "name": "Multi-Frequency Grating",
+      "description": "Superposition of two frequencies - multiple diffraction orders",
+      "phase_gif": "assets/L2/multi_frequency_grating_phase.gif",
+      "intensity_gif": "assets/L2/multi_frequency_grating_intensity.gif",
+      "parameters": {}
+    }
+  ],
+  "generated_at": "2026-01-19T23:11:39.633518",
+  "version": "1.0.0"
+}
