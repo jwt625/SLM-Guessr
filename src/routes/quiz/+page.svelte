@@ -34,14 +34,14 @@
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 	let startTime = $state<number>(0);
-	let elapsedTime = $state<number>(0);
+	let elapsedTimeMs = $state<number>(0);
 	let timerInterval = $state<number | null>(null);
 
 	// Derived
 	let currentQuestion = $derived(questions[currentQuestionIndex]);
 	let isLastQuestion = $derived(currentQuestionIndex === questions.length - 1);
 	let streakBonus = $derived(Math.min(streak * STREAK_BONUS, MAX_STREAK_BONUS));
-	let formattedTime = $derived(formatTime(elapsedTime));
+	let formattedTime = $derived(formatTime(elapsedTimeMs));
 
 	onMount(async () => {
 		try {
@@ -63,19 +63,21 @@
 		stopTimer();
 	});
 
-	function formatTime(seconds: number): string {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins}:${secs.toString().padStart(2, '0')}`;
+	function formatTime(milliseconds: number): string {
+		const totalSeconds = Math.floor(milliseconds / 1000);
+		const mins = Math.floor(totalSeconds / 60);
+		const secs = totalSeconds % 60;
+		const ms = Math.floor((milliseconds % 1000) / 10); // Get centiseconds (2 digits)
+		return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
 	}
 
 	function startTimer() {
 		startTime = Date.now();
-		elapsedTime = 0;
+		elapsedTimeMs = 0;
 		if (timerInterval) clearInterval(timerInterval);
 		timerInterval = window.setInterval(() => {
-			elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-		}, 1000);
+			elapsedTimeMs = Date.now() - startTime;
+		}, 10); // Update every 10ms for smoother display
 	}
 
 	function stopTimer() {
@@ -170,7 +172,7 @@
 		streak = 0;
 		selectedAnswer = null;
 		answers = [];
-		elapsedTime = 0;
+		elapsedTimeMs = 0;
 	}
 
 	function resolvePath(path: string): string {
