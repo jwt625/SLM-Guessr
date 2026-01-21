@@ -41,6 +41,21 @@ from .patterns import (
     compute_intensity,
 )
 
+from .patterns_L2 import (
+    create_concentric_rings_binary,
+    create_concentric_rings_sinusoidal,
+    create_radial_sectors,
+    create_spiral_grating,
+    create_hexagonal_lattice,
+    create_triangular_lattice,
+    create_grating_with_defect,
+    create_chirped_grating,
+    create_duty_cycle_grating,
+    create_amplitude_modulated_grating,
+    create_blazed_grating_variable,
+    create_rings_and_sectors,
+)
+
 # Use PIL for GIF generation
 from PIL import Image
 
@@ -752,6 +767,160 @@ def gen_multi_frequency_grating(input_amp: np.ndarray):
 
 
 # =============================================================================
+# L2 Extended: Advanced Periodic Structures
+# =============================================================================
+
+def gen_concentric_rings_binary(input_amp: np.ndarray):
+    """Concentric binary rings, period sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        period = 40 - 30 * i / (n_frames - 1)  # 40 to 10 pixels
+        phase = create_concentric_rings_binary(GRID_SIZE, period=period)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_concentric_rings_sinusoidal(input_amp: np.ndarray):
+    """Concentric sinusoidal rings (Fresnel zone plate-like), period sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        period = 40 - 30 * i / (n_frames - 1)  # 40 to 10 pixels
+        phase = create_concentric_rings_sinusoidal(GRID_SIZE, period=period)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_radial_sectors(input_amp: np.ndarray):
+    """Radial sectors (pizza slices), number of sectors increases."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        n_sectors = 4 + int(28 * i / (n_frames - 1))  # 4 to 32 sectors
+        phase = create_radial_sectors(GRID_SIZE, n_sectors=n_sectors)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_spiral_grating(input_amp: np.ndarray):
+    """Spiral grating, pitch decreases."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        pitch = 50 - 35 * i / (n_frames - 1)  # 50 to 15 pixels
+        phase = create_spiral_grating(GRID_SIZE, pitch=pitch, n_arms=1)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_hexagonal_lattice(input_amp: np.ndarray):
+    """Hexagonal lattice, period sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        period = 60 - 40 * i / (n_frames - 1)  # 60 to 20 pixels
+        phase = create_hexagonal_lattice(GRID_SIZE, period=period)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_triangular_lattice(input_amp: np.ndarray):
+    """Triangular lattice, period sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        period = 60 - 40 * i / (n_frames - 1)  # 60 to 20 pixels
+        phase = create_triangular_lattice(GRID_SIZE, period=period)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_grating_with_defect(input_amp: np.ndarray):
+    """Binary grating with phase defect moving across."""
+    frames = []
+    n_frames = 16
+    period = 20
+    for i in range(n_frames):
+        defect_pos = -GRID_SIZE/2 + GRID_SIZE * i / (n_frames - 1)  # Move from left to right
+        phase = create_grating_with_defect(GRID_SIZE, period=period, defect_position=defect_pos)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_chirped_grating(input_amp: np.ndarray):
+    """Chirped grating, chirp rate increases."""
+    frames = []
+    n_frames = 16
+    period_start = 40
+    for i in range(n_frames):
+        period_end = 40 - 30 * i / (n_frames - 1)  # 40 to 10 pixels (increasing chirp)
+        phase = create_chirped_grating(GRID_SIZE, period_start=period_start, period_end=period_end)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_duty_cycle_sweep(input_amp: np.ndarray):
+    """Binary grating with duty cycle sweep."""
+    frames = []
+    n_frames = 16
+    period = 24
+    for i in range(n_frames):
+        duty_cycle = 0.2 + 0.6 * i / (n_frames - 1)  # 0.2 to 0.8
+        phase = create_duty_cycle_grating(GRID_SIZE, period=period, duty_cycle=duty_cycle)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_amplitude_modulated_grating(input_amp: np.ndarray):
+    """Grating with Gaussian envelope, envelope width decreases."""
+    frames = []
+    n_frames = 16
+    period = 20
+    for i in range(n_frames):
+        sigma = GRID_SIZE/2 - GRID_SIZE/3 * i / (n_frames - 1)  # Envelope narrows
+        phase = create_amplitude_modulated_grating(GRID_SIZE, period=period, envelope_sigma=sigma)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_blazed_grating_angle_sweep(input_amp: np.ndarray):
+    """Blazed grating with varying blaze angle."""
+    frames = []
+    n_frames = 16
+    period = 24
+    for i in range(n_frames):
+        blaze_fraction = 0.1 + 0.8 * i / (n_frames - 1)  # 0.1 to 0.9
+        phase = create_blazed_grating_variable(GRID_SIZE, period=period, blaze_fraction=blaze_fraction)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_rings_and_sectors(input_amp: np.ndarray):
+    """Combined concentric rings and radial sectors pattern."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        ring_period = 40 - 30 * i / (n_frames - 1)  # 40 to 10 pixels (same as standalone rings)
+        n_sectors = 4 + int(28 * i / (n_frames - 1))  # 4 to 32 sectors
+        phase = create_rings_and_sectors(GRID_SIZE, ring_period=ring_period, n_sectors=n_sectors)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+# =============================================================================
 # Sample Configuration Registry
 # =============================================================================
 
@@ -1083,6 +1252,105 @@ L2_SAMPLES = [
         name="Multi-Frequency Grating",
         description="Superposition of two frequencies - multiple diffraction orders",
         generator=gen_multi_frequency_grating,
+    ),
+    # Radial/Circular Patterns
+    SampleConfig(
+        id="concentric_rings_binary",
+        level=2,
+        category="periodic",
+        name="Concentric Rings (Binary)",
+        description="Binary phase rings - radial diffraction pattern, period decreases",
+        generator=gen_concentric_rings_binary,
+    ),
+    SampleConfig(
+        id="concentric_rings_sinusoidal",
+        level=2,
+        category="periodic",
+        name="Concentric Rings (Sinusoidal)",
+        description="Smooth sinusoidal rings (Fresnel zone plate-like) - radial focusing effect",
+        generator=gen_concentric_rings_sinusoidal,
+    ),
+    SampleConfig(
+        id="radial_sectors",
+        level=2,
+        category="periodic",
+        name="Radial Sectors",
+        description="Pizza slice pattern - number of sectors increases, azimuthal diffraction",
+        generator=gen_radial_sectors,
+    ),
+    SampleConfig(
+        id="spiral_grating",
+        level=2,
+        category="periodic",
+        name="Spiral Grating",
+        description="Archimedean spiral - pitch decreases, creates orbital angular momentum",
+        generator=gen_spiral_grating,
+    ),
+    # Lattice Patterns
+    SampleConfig(
+        id="hexagonal_lattice",
+        level=2,
+        category="periodic",
+        name="Hexagonal Lattice",
+        description="Honeycomb pattern - 6-fold symmetric diffraction, period sweep",
+        generator=gen_hexagonal_lattice,
+    ),
+    SampleConfig(
+        id="triangular_lattice",
+        level=2,
+        category="periodic",
+        name="Triangular Lattice",
+        description="Triangular tiling - 3-fold symmetric diffraction pattern",
+        generator=gen_triangular_lattice,
+    ),
+    # Advanced Grating Variations
+    SampleConfig(
+        id="grating_with_defect",
+        level=2,
+        category="periodic",
+        name="Grating with Defect",
+        description="Binary grating with phase defect - observe defect mode in diffraction",
+        generator=gen_grating_with_defect,
+    ),
+    SampleConfig(
+        id="chirped_grating",
+        level=2,
+        category="periodic",
+        name="Chirped Grating",
+        description="Linearly varying period - spatially dispersive diffraction",
+        generator=gen_chirped_grating,
+    ),
+    SampleConfig(
+        id="duty_cycle_sweep",
+        level=2,
+        category="periodic",
+        name="Duty Cycle Sweep",
+        description="Binary grating with varying duty cycle - relative order intensities change",
+        generator=gen_duty_cycle_sweep,
+    ),
+    SampleConfig(
+        id="amplitude_modulated_grating",
+        level=2,
+        category="periodic",
+        name="Amplitude Modulated Grating",
+        description="Grating with Gaussian envelope - localized diffraction pattern",
+        generator=gen_amplitude_modulated_grating,
+    ),
+    SampleConfig(
+        id="blazed_grating_angle_sweep",
+        level=2,
+        category="periodic",
+        name="Blazed Grating (Angle Sweep)",
+        description="Blazed grating with varying blaze angle - efficiency shifts between orders",
+        generator=gen_blazed_grating_angle_sweep,
+    ),
+    SampleConfig(
+        id="rings_and_sectors",
+        level=2,
+        category="periodic",
+        name="Rings and Sectors",
+        description="Combined concentric rings and radial sectors - polar coordinate grid pattern",
+        generator=gen_rings_and_sectors,
     ),
 ]
 

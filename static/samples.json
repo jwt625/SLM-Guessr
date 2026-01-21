@@ -235,7 +235,7 @@
       "level": 1,
       "category": "foundations",
       "name": "Ellipse Rotation",
-      "description": "Fixed ellipse rotates 0° to 90° - intensity pattern rotates",
+      "description": "Fixed ellipse rotates 0\u00b0 to 90\u00b0 - intensity pattern rotates",
       "phase_gif": "assets/L1/ellipse_rotation_phase.gif",
       "intensity_gif": "assets/L1/ellipse_rotation_intensity.gif",
       "parameters": {}
@@ -245,7 +245,7 @@
       "level": 1,
       "category": "foundations",
       "name": "Ring Aperture Radius Sweep",
-      "description": "Annular aperture - ring radius increases with constant width, random phase outside scrambles light",
+      "description": "Annular aperture - outer radius increases, shows Bessel-like patterns",
       "phase_gif": "assets/L1/ring_aperture_radius_sweep_phase.gif",
       "intensity_gif": "assets/L1/ring_aperture_radius_sweep_intensity.gif",
       "parameters": {}
@@ -255,7 +255,7 @@
       "level": 1,
       "category": "foundations",
       "name": "Ring Aperture Width Sweep",
-      "description": "Annular aperture - ring width increases, random phase outside blocks unwanted light",
+      "description": "Annular aperture - ring width increases from thin to thick",
       "phase_gif": "assets/L1/ring_aperture_width_sweep_phase.gif",
       "intensity_gif": "assets/L1/ring_aperture_width_sweep_intensity.gif",
       "parameters": {}
@@ -295,7 +295,7 @@
       "level": 1,
       "category": "foundations",
       "name": "Cylindrical Lens (Y)",
-      "description": "Quadratic phase in Y only - line focus rotated 90°",
+      "description": "Quadratic phase in Y only - line focus rotated 90\u00b0",
       "phase_gif": "assets/L1/quadratic_cylindrical_y_phase.gif",
       "intensity_gif": "assets/L1/quadratic_cylindrical_y_intensity.gif",
       "parameters": {}
@@ -399,8 +399,128 @@
       "phase_gif": "assets/L2/multi_frequency_grating_phase.gif",
       "intensity_gif": "assets/L2/multi_frequency_grating_intensity.gif",
       "parameters": {}
+    },
+    {
+      "id": "concentric_rings_binary",
+      "level": 2,
+      "category": "periodic",
+      "name": "Concentric Rings (Binary)",
+      "description": "Binary phase rings - radial diffraction pattern, period decreases",
+      "phase_gif": "assets/L2/concentric_rings_binary_phase.gif",
+      "intensity_gif": "assets/L2/concentric_rings_binary_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "concentric_rings_sinusoidal",
+      "level": 2,
+      "category": "periodic",
+      "name": "Concentric Rings (Sinusoidal)",
+      "description": "Smooth sinusoidal rings (Fresnel zone plate-like) - radial focusing effect",
+      "phase_gif": "assets/L2/concentric_rings_sinusoidal_phase.gif",
+      "intensity_gif": "assets/L2/concentric_rings_sinusoidal_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "radial_sectors",
+      "level": 2,
+      "category": "periodic",
+      "name": "Radial Sectors",
+      "description": "Pizza slice pattern - number of sectors increases, azimuthal diffraction",
+      "phase_gif": "assets/L2/radial_sectors_phase.gif",
+      "intensity_gif": "assets/L2/radial_sectors_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spiral_grating",
+      "level": 2,
+      "category": "periodic",
+      "name": "Spiral Grating",
+      "description": "Archimedean spiral - pitch decreases, creates orbital angular momentum",
+      "phase_gif": "assets/L2/spiral_grating_phase.gif",
+      "intensity_gif": "assets/L2/spiral_grating_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "hexagonal_lattice",
+      "level": 2,
+      "category": "periodic",
+      "name": "Hexagonal Lattice",
+      "description": "Honeycomb pattern - 6-fold symmetric diffraction, period sweep",
+      "phase_gif": "assets/L2/hexagonal_lattice_phase.gif",
+      "intensity_gif": "assets/L2/hexagonal_lattice_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "triangular_lattice",
+      "level": 2,
+      "category": "periodic",
+      "name": "Triangular Lattice",
+      "description": "Triangular tiling - 3-fold symmetric diffraction pattern",
+      "phase_gif": "assets/L2/triangular_lattice_phase.gif",
+      "intensity_gif": "assets/L2/triangular_lattice_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "grating_with_defect",
+      "level": 2,
+      "category": "periodic",
+      "name": "Grating with Defect",
+      "description": "Binary grating with phase defect - observe defect mode in diffraction",
+      "phase_gif": "assets/L2/grating_with_defect_phase.gif",
+      "intensity_gif": "assets/L2/grating_with_defect_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "chirped_grating",
+      "level": 2,
+      "category": "periodic",
+      "name": "Chirped Grating",
+      "description": "Linearly varying period - spatially dispersive diffraction",
+      "phase_gif": "assets/L2/chirped_grating_phase.gif",
+      "intensity_gif": "assets/L2/chirped_grating_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "duty_cycle_sweep",
+      "level": 2,
+      "category": "periodic",
+      "name": "Duty Cycle Sweep",
+      "description": "Binary grating with varying duty cycle - relative order intensities change",
+      "phase_gif": "assets/L2/duty_cycle_sweep_phase.gif",
+      "intensity_gif": "assets/L2/duty_cycle_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "amplitude_modulated_grating",
+      "level": 2,
+      "category": "periodic",
+      "name": "Amplitude Modulated Grating",
+      "description": "Grating with Gaussian envelope - localized diffraction pattern",
+      "phase_gif": "assets/L2/amplitude_modulated_grating_phase.gif",
+      "intensity_gif": "assets/L2/amplitude_modulated_grating_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "blazed_grating_angle_sweep",
+      "level": 2,
+      "category": "periodic",
+      "name": "Blazed Grating (Angle Sweep)",
+      "description": "Blazed grating with varying blaze angle - efficiency shifts between orders",
+      "phase_gif": "assets/L2/blazed_grating_angle_sweep_phase.gif",
+      "intensity_gif": "assets/L2/blazed_grating_angle_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "rings_and_sectors",
+      "level": 2,
+      "category": "periodic",
+      "name": "Rings and Sectors",
+      "description": "Combined concentric rings and radial sectors - polar coordinate grid pattern",
+      "phase_gif": "assets/L2/rings_and_sectors_phase.gif",
+      "intensity_gif": "assets/L2/rings_and_sectors_intensity.gif",
+      "parameters": {}
     }
   ],
-  "generated_at": "2026-01-21T00:00:00.000000",
+  "generated_at": "2026-01-20T21:23:17.698645",
   "version": "1.0.0"
 }

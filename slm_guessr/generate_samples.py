@@ -47,8 +47,8 @@ def main():
             print(f"  {s.id:30} L{s.level} - {s.name}")
         return
 
-    # Output to slm-guessr/static/assets
-    output_dir = parent_dir / "slm-guessr" / "static" / "assets"
+    # Output to static/assets
+    output_dir = parent_dir / "static" / "assets"
 
     print("=" * 50)
     print("SLM-Guessr Sample Generator")
