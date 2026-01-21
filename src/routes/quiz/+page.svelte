@@ -2,10 +2,9 @@
 	import { base } from '$app/paths';
 	import type { QuizMode, Sample, SampleManifest } from '$lib/types';
 	import GifPlayer from '$lib/components/GifPlayer.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	// Constants
-	const QUESTIONS_PER_ROUND = 5;
 	const OPTIONS_PER_QUESTION = 4;
 	const POINTS_CORRECT = 10;
 	const STREAK_BONUS = 5;
@@ -24,6 +23,7 @@
 	// State
 	let gamePhase = $state<GamePhase>('setup');
 	let selectedMode = $state<QuizMode>('phase-to-intensity');
+	let selectedQuestionCount = $state<number>(10);
 	let allSamples = $state<Sample[]>([]);
 	let questions = $state<QuizQuestion[]>([]);
 	let currentQuestionIndex = $state(0);
@@ -33,11 +33,15 @@
 	let answers = $state<boolean[]>([]);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
+	let startTime = $state<number>(0);
+	let elapsedTime = $state<number>(0);
+	let timerInterval = $state<number | null>(null);
 
 	// Derived
 	let currentQuestion = $derived(questions[currentQuestionIndex]);
 	let isLastQuestion = $derived(currentQuestionIndex === questions.length - 1);
 	let streakBonus = $derived(Math.min(streak * STREAK_BONUS, MAX_STREAK_BONUS));
+	let formattedTime = $derived(formatTime(elapsedTime));
 
 	onMount(async () => {
 		try {
@@ -55,6 +59,32 @@
 		}
 	});
 
+	onDestroy(() => {
+		stopTimer();
+	});
+
+	function formatTime(seconds: number): string {
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${mins}:${secs.toString().padStart(2, '0')}`;
+	}
+
+	function startTimer() {
+		startTime = Date.now();
+		elapsedTime = 0;
+		if (timerInterval) clearInterval(timerInterval);
+		timerInterval = window.setInterval(() => {
+			elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+		}, 1000);
+	}
+
+	function stopTimer() {
+		if (timerInterval) {
+			clearInterval(timerInterval);
+			timerInterval = null;
+		}
+	}
+
 	function shuffleArray<T>(array: T[]): T[] {
 		const shuffled = [...array];
 		for (let i = shuffled.length - 1; i > 0; i--) {
@@ -68,7 +98,7 @@
 		const shuffledSamples = shuffleArray(allSamples);
 		const generatedQuestions: QuizQuestion[] = [];
 
-		for (let i = 0; i < QUESTIONS_PER_ROUND; i++) {
+		for (let i = 0; i < selectedQuestionCount; i++) {
 			// Pick correct answer (cycle through shuffled samples)
 			const correctSample = shuffledSamples[i % shuffledSamples.length];
 
@@ -99,6 +129,7 @@
 		selectedAnswer = null;
 		answers = [];
 		gamePhase = 'playing';
+		startTimer();
 	}
 
 	function selectAnswer(index: number) {
@@ -121,6 +152,7 @@
 
 	function nextQuestion() {
 		if (isLastQuestion) {
+			stopTimer();
 			gamePhase = 'results';
 		} else {
 			currentQuestionIndex += 1;
@@ -130,6 +162,7 @@
 	}
 
 	function resetQuiz() {
+		stopTimer();
 		gamePhase = 'setup';
 		questions = [];
 		currentQuestionIndex = 0;
@@ -137,6 +170,7 @@
 		streak = 0;
 		selectedAnswer = null;
 		answers = [];
+		elapsedTime = 0;
 	}
 
 	function resolvePath(path: string): string {
@@ -236,11 +270,33 @@
 				</div>
 			</section>
 
+			<section class="option-group">
+				<h2>Number of Questions</h2>
+				<div class="options difficulty-options">
+					<button
+						class="option-btn small"
+						class:active={selectedQuestionCount === 5}
+						onclick={() => selectedQuestionCount = 5}
+					>
+						<span class="option-title">5</span>
+						<span class="option-desc">Quick</span>
+					</button>
+					<button
+						class="option-btn small"
+						class:active={selectedQuestionCount === 10}
+						onclick={() => selectedQuestionCount = 10}
+					>
+						<span class="option-title">10</span>
+						<span class="option-desc">Standard</span>
+					</button>
+				</div>
+			</section>
+
 			<div class="start-section">
 				<button class="start-btn primary" onclick={startQuiz}>
 					Start Quiz
 				</button>
-				<p class="hint">{QUESTIONS_PER_ROUND} questions per round</p>
+				<p class="hint">{selectedQuestionCount} questions per round</p>
 			</div>
 		</div>
 	{:else if gamePhase === 'playing' || gamePhase === 'feedback'}
@@ -254,6 +310,10 @@
 				<div class="score-item">
 					<span class="score-label">Score</span>
 					<span class="score-value">{score}</span>
+				</div>
+				<div class="score-item timer-item">
+					<span class="score-label">Time</span>
+					<span class="score-value timer-value">{formattedTime}</span>
 				</div>
 				<div class="score-item">
 					<span class="score-label">Streak</span>
@@ -286,44 +346,55 @@
 				<p class="options-prompt">Select the matching {selectedMode === 'phase-to-intensity' ? 'intensity' : 'phase'}:</p>
 				<div class="options-grid">
 					{#each currentQuestion.options as option, index}
-						<button
-							class="option-card {getOptionClass(index)}"
-							onclick={() => selectAnswer(index)}
-							disabled={gamePhase === 'feedback'}
-						>
-							<GifPlayer
-								src={getOptionGif(option)}
-								alt="Option {index + 1}"
-							/>
-							{#if gamePhase === 'feedback'}
-								<span class="option-label">{option.name}</span>
+						<div class="option-wrapper">
+							<button
+								class="option-card {getOptionClass(index)}"
+								onclick={() => selectAnswer(index)}
+								disabled={gamePhase === 'feedback'}
+								id="option-{index}"
+							>
+								<GifPlayer
+									src={getOptionGif(option)}
+									alt="Option {index + 1}"
+								/>
+								{#if gamePhase === 'feedback'}
+									<span class="option-label">{option.name}</span>
+								{/if}
+							</button>
+
+							<!-- Feedback overlay on selected option -->
+							{#if gamePhase === 'feedback' && selectedAnswer === index}
+								<div class="feedback-overlay">
+									<div class="feedback-content">
+										{#if selectedAnswer === currentQuestion.correctIndex}
+											<p class="feedback-text correct">Correct! +{POINTS_CORRECT}{streak > 1 ? ` +${Math.min((streak - 1) * STREAK_BONUS, MAX_STREAK_BONUS)} streak bonus` : ''}</p>
+										{:else}
+											<p class="feedback-text incorrect">Incorrect. The answer was: {currentQuestion.correctSample.name}</p>
+										{/if}
+										<button class="next-btn primary" onclick={nextQuestion}>
+											{isLastQuestion ? 'See Results' : 'Next Question'}
+										</button>
+									</div>
+								</div>
 							{/if}
-						</button>
+						</div>
 					{/each}
 				</div>
 			</div>
-
-			<!-- Feedback / Next -->
-			{#if gamePhase === 'feedback'}
-				<div class="feedback-section">
-					{#if selectedAnswer === currentQuestion.correctIndex}
-						<p class="feedback-text correct">Correct! +{POINTS_CORRECT}{streak > 1 ? ` +${Math.min((streak - 1) * STREAK_BONUS, MAX_STREAK_BONUS)} streak bonus` : ''}</p>
-					{:else}
-						<p class="feedback-text incorrect">Incorrect. The answer was: {currentQuestion.correctSample.name}</p>
-					{/if}
-					<button class="next-btn primary" onclick={nextQuestion}>
-						{isLastQuestion ? 'See Results' : 'Next Question'}
-					</button>
-				</div>
-			{/if}
 		</div>
 	{:else if gamePhase === 'results'}
 		<div class="results">
 			<div class="results-card">
 				<h2>Quiz Complete</h2>
-				<div class="final-score">
-					<span class="score-number">{score}</span>
-					<span class="score-label">points</span>
+				<div class="final-scores">
+					<div class="final-score">
+						<span class="score-number">{score}</span>
+						<span class="score-label">points</span>
+					</div>
+					<div class="final-score">
+						<span class="score-number">{formattedTime}</span>
+						<span class="score-label">time</span>
+					</div>
 				</div>
 				<div class="results-stats">
 					<div class="stat">
@@ -489,6 +560,10 @@
 		gap: 2px;
 	}
 
+	.timer-item {
+		align-items: center;
+	}
+
 	.score-label {
 		font-size: 0.75rem;
 		text-transform: uppercase;
@@ -499,6 +574,12 @@
 		font-family: var(--font-mono);
 		font-size: 1.1rem;
 		color: var(--accent);
+	}
+
+	.timer-value {
+		font-size: 1.3rem;
+		font-weight: 600;
+		color: var(--text-primary);
 	}
 
 	.question-section {
@@ -550,6 +631,10 @@
 		}
 	}
 
+	.option-wrapper {
+		position: relative;
+	}
+
 	.option-card {
 		display: flex;
 		flex-direction: column;
@@ -559,6 +644,7 @@
 		border: 2px solid var(--border);
 		cursor: pointer;
 		transition: border-color 0.15s, opacity 0.15s;
+		width: 100%;
 	}
 
 	.option-card:hover:not(:disabled) {
@@ -592,6 +678,32 @@
 		white-space: nowrap;
 	}
 
+	.feedback-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+		z-index: 10;
+	}
+
+	.feedback-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-lg);
+		background-color: rgba(0, 0, 0, 0.85);
+		backdrop-filter: blur(4px);
+		border-radius: 8px;
+		pointer-events: auto;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+
 	.feedback-section {
 		display: flex;
 		flex-direction: column;
@@ -605,6 +717,8 @@
 	.feedback-text {
 		font-size: 1.1rem;
 		font-weight: 500;
+		margin: 0;
+		text-align: center;
 	}
 
 	.feedback-text.correct {
@@ -617,6 +731,12 @@
 
 	.next-btn {
 		padding: var(--spacing-sm) var(--spacing-lg);
+		background-color: rgba(255, 255, 255, 0.5);
+		backdrop-filter: blur(4px);
+	}
+
+	.next-btn:hover {
+		background-color: rgba(255, 255, 255, 0.7);
 	}
 
 	/* Results */
@@ -638,6 +758,12 @@
 
 	.results-card h2 {
 		margin: 0;
+	}
+
+	.final-scores {
+		display: flex;
+		gap: var(--spacing-xl);
+		align-items: center;
 	}
 
 	.final-score {
