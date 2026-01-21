@@ -25,6 +25,13 @@ from .patterns import (
     create_spot_target,
     create_gaussian_spot_target,
     create_rectangular_slab_target,
+    create_line_target,
+    create_band_target,
+    create_ellipse_target,
+    create_ring_target,
+    create_ring_aperture_phase,
+    create_cylindrical_lens_phase,
+    create_two_spots_target,
     create_binary_grating,
     create_sinusoidal_grating,
     create_blazed_grating,
@@ -394,6 +401,253 @@ def gen_soft_aperture(input_amp: np.ndarray):
 
 
 # =============================================================================
+# L1: Additional Foundations - Line/Band Sweeps
+# =============================================================================
+
+def gen_narrow_line_sweep_x(input_amp: np.ndarray):
+    """Narrow vertical line sweeping horizontally."""
+    frames = []
+    n_frames = 16
+    max_offset = GRID_SIZE // 6
+    for i in range(n_frames):
+        cx = -max_offset + (2 * max_offset * i) / (n_frames - 1)
+        target = create_line_target(GRID_SIZE, cx, 0, width=4, orientation='vertical')
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_narrow_line_sweep_y(input_amp: np.ndarray):
+    """Narrow horizontal line sweeping vertically."""
+    frames = []
+    n_frames = 16
+    max_offset = GRID_SIZE // 6
+    for i in range(n_frames):
+        cy = -max_offset + (2 * max_offset * i) / (n_frames - 1)
+        target = create_line_target(GRID_SIZE, 0, cy, width=4, orientation='horizontal')
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_wide_band_sweep_x(input_amp: np.ndarray):
+    """Wide vertical band sweeping horizontally."""
+    frames = []
+    n_frames = 16
+    max_offset = GRID_SIZE // 6
+    for i in range(n_frames):
+        cx = -max_offset + (2 * max_offset * i) / (n_frames - 1)
+        target = create_band_target(GRID_SIZE, cx, 0, width=35, orientation='vertical', profile='uniform')
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_wide_band_sweep_y(input_amp: np.ndarray):
+    """Wide horizontal band sweeping vertically."""
+    frames = []
+    n_frames = 16
+    max_offset = GRID_SIZE // 6
+    for i in range(n_frames):
+        cy = -max_offset + (2 * max_offset * i) / (n_frames - 1)
+        target = create_band_target(GRID_SIZE, 0, cy, width=35, orientation='horizontal', profile='uniform')
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_half_sine_band_sweep_x(input_amp: np.ndarray):
+    """Vertical band with half-sine profile sweeping horizontally."""
+    frames = []
+    n_frames = 16
+    max_offset = GRID_SIZE // 6
+    for i in range(n_frames):
+        cx = -max_offset + (2 * max_offset * i) / (n_frames - 1)
+        target = create_band_target(GRID_SIZE, cx, 0, width=35, orientation='vertical', profile='half_sine')
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_half_sine_band_sweep_y(input_amp: np.ndarray):
+    """Horizontal band with half-sine profile sweeping vertically."""
+    frames = []
+    n_frames = 16
+    max_offset = GRID_SIZE // 6
+    for i in range(n_frames):
+        cy = -max_offset + (2 * max_offset * i) / (n_frames - 1)
+        target = create_band_target(GRID_SIZE, 0, cy, width=35, orientation='horizontal', profile='half_sine')
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+# =============================================================================
+# L1: Additional Foundations - Disk/Ellipse Variations
+# =============================================================================
+
+def gen_disk_aspect_ratio_sweep(input_amp: np.ndarray):
+    """Disk morphing from circle to ellipse - aspect ratio sweep."""
+    frames = []
+    n_frames = 20
+    base_radius = 45
+    for i in range(n_frames):
+        aspect_ratio = 1.0 + 2.0 * i / (n_frames - 1)  # 1.0 to 3.0
+        radius_x = base_radius
+        radius_y = base_radius / aspect_ratio
+        target = create_ellipse_target(GRID_SIZE, 0, 0, radius_x, radius_y, angle=0)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_ellipse_rotation(input_amp: np.ndarray):
+    """Fixed ellipse rotating from 0 to 90 degrees."""
+    frames = []
+    n_frames = 20
+    radius_x = 50
+    radius_y = 20
+    for i in range(n_frames):
+        angle = np.pi / 2 * i / (n_frames - 1)  # 0 to 90 degrees
+        target = create_ellipse_target(GRID_SIZE, 0, 0, radius_x, radius_y, angle=angle)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+# =============================================================================
+# L1: Additional Foundations - Ring/Annulus Patterns
+# =============================================================================
+
+def gen_ring_aperture_radius_sweep(input_amp: np.ndarray):
+    """Ring aperture - radius increases while keeping width constant. Uses random phase outside ring."""
+    frames = []
+    n_frames = 16
+    ring_width = 15  # Fixed width
+    # Fixed random phase for outside region (seeded for consistency)
+    rng = np.random.RandomState(43)
+    random_phase = rng.uniform(-np.pi, np.pi, (GRID_SIZE, GRID_SIZE))
+
+    for i in range(n_frames):
+        mean_radius = 20 + 50 * i / (n_frames - 1)  # 20 to 70 pixels
+        inner_radius = mean_radius - ring_width / 2
+        outer_radius = mean_radius + ring_width / 2
+        aperture_mask = create_ring_aperture_phase(GRID_SIZE, inner_radius, outer_radius)
+        # Flat phase inside ring, random phase outside (scrambles light)
+        phase = np.where(aperture_mask > 0.5, 0.0, random_phase)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_ring_aperture_width_sweep(input_amp: np.ndarray):
+    """Ring aperture - width increases, mean radius fixed. Uses random phase outside ring."""
+    frames = []
+    n_frames = 16
+    mean_radius = 50
+    # Fixed random phase for outside region (seeded for consistency)
+    rng = np.random.RandomState(44)
+    random_phase = rng.uniform(-np.pi, np.pi, (GRID_SIZE, GRID_SIZE))
+
+    for i in range(n_frames):
+        width = 5 + 35 * i / (n_frames - 1)  # 5 to 40 pixels
+        inner_radius = mean_radius - width / 2
+        outer_radius = mean_radius + width / 2
+        aperture_mask = create_ring_aperture_phase(GRID_SIZE, inner_radius, outer_radius)
+        # Flat phase inside ring, random phase outside (scrambles light)
+        phase = np.where(aperture_mask > 0.5, 0.0, random_phase)
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_ring_target_radius_sweep(input_amp: np.ndarray):
+    """Ring target intensity - radius sweeps outward."""
+    frames = []
+    n_frames = 16
+    width = 8
+    for i in range(n_frames):
+        mean_radius = 15 + 45 * i / (n_frames - 1)  # 15 to 60 pixels
+        inner_radius = mean_radius - width / 2
+        outer_radius = mean_radius + width / 2
+        target = create_ring_target(GRID_SIZE, 0, 0, inner_radius, outer_radius)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_ring_target_width_sweep(input_amp: np.ndarray):
+    """Ring target intensity - width increases, radius fixed."""
+    frames = []
+    n_frames = 16
+    mean_radius = 40
+    for i in range(n_frames):
+        width = 5 + 35 * i / (n_frames - 1)  # 5 to 40 pixels
+        inner_radius = mean_radius - width / 2
+        outer_radius = mean_radius + width / 2
+        target = create_ring_target(GRID_SIZE, 0, 0, inner_radius, outer_radius)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+# =============================================================================
+# L1: Additional Foundations - Cylindrical Lens Variations
+# =============================================================================
+
+def gen_quadratic_cylindrical_x(input_amp: np.ndarray):
+    """Cylindrical lens in X - creates line focus."""
+    frames = []
+    n_frames = 32
+    for i in range(n_frames):
+        curvature = -10 + 20 * i / (n_frames - 1)  # -10 to +10 (much stronger)
+        phase = create_cylindrical_lens_phase(GRID_SIZE, curvature, axis='x')
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_quadratic_cylindrical_y(input_amp: np.ndarray):
+    """Cylindrical lens in Y - line focus rotated 90 degrees."""
+    frames = []
+    n_frames = 32
+    for i in range(n_frames):
+        curvature = -10 + 20 * i / (n_frames - 1)  # -10 to +10 (much stronger)
+        phase = create_cylindrical_lens_phase(GRID_SIZE, curvature, axis='y')
+        intensity = compute_intensity(input_amp, phase)
+        frames.append((phase, intensity))
+    return frames
+
+
+# =============================================================================
+# L1: Additional Foundations - Multi-Spot Patterns
+# =============================================================================
+
+def gen_two_spots_separation_sweep(input_amp: np.ndarray):
+    """Two spots - separation increases."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        separation = 10 + 60 * i / (n_frames - 1)  # 10 to 70 pixels
+        target = create_two_spots_target(GRID_SIZE, separation, angle=0)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spot_size_sweep(input_amp: np.ndarray):
+    """Single centered spot - radius increases."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        radius = 3 + 22 * i / (n_frames - 1)  # 3 to 25 pixels
+        target = create_spot_target(GRID_SIZE, 0, 0, radius=int(radius))
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+# =============================================================================
 # L2: Periodic Structures Frame Generators
 # =============================================================================
 
@@ -629,6 +883,139 @@ L1_SAMPLES = [
         name="Soft Aperture Edge",
         description="Edge smoothness sweep - softer edges reduce ringing/sidelobes",
         generator=gen_soft_aperture,
+    ),
+    # New additions - Line/Band sweeps
+    SampleConfig(
+        id="narrow_line_sweep_x",
+        level=1,
+        category="foundations",
+        name="Narrow Line Sweep (X)",
+        description="Thin vertical line sweeping horizontally - sharp sinc pattern",
+        generator=gen_narrow_line_sweep_x,
+    ),
+    SampleConfig(
+        id="narrow_line_sweep_y",
+        level=1,
+        category="foundations",
+        name="Narrow Line Sweep (Y)",
+        description="Thin horizontal line sweeping vertically - sharp sinc pattern",
+        generator=gen_narrow_line_sweep_y,
+    ),
+    SampleConfig(
+        id="wide_band_sweep_x",
+        level=1,
+        category="foundations",
+        name="Wide Band Sweep (X)",
+        description="Thick vertical band sweeping horizontally - broader sinc envelope",
+        generator=gen_wide_band_sweep_x,
+    ),
+    SampleConfig(
+        id="wide_band_sweep_y",
+        level=1,
+        category="foundations",
+        name="Wide Band Sweep (Y)",
+        description="Thick horizontal band sweeping vertically - broader sinc envelope",
+        generator=gen_wide_band_sweep_y,
+    ),
+    SampleConfig(
+        id="half_sine_band_sweep_x",
+        level=1,
+        category="foundations",
+        name="Half-Sine Band Sweep (X)",
+        description="Vertical band with half-sine profile - reduced sidelobes vs rectangular",
+        generator=gen_half_sine_band_sweep_x,
+    ),
+    SampleConfig(
+        id="half_sine_band_sweep_y",
+        level=1,
+        category="foundations",
+        name="Half-Sine Band Sweep (Y)",
+        description="Horizontal band with half-sine profile - smoother than rectangular",
+        generator=gen_half_sine_band_sweep_y,
+    ),
+    # Disk/Ellipse variations
+    SampleConfig(
+        id="disk_aspect_ratio_sweep",
+        level=1,
+        category="foundations",
+        name="Disk Aspect Ratio Sweep",
+        description="Disk morphs from circle to ellipse - Airy pattern deforms",
+        generator=gen_disk_aspect_ratio_sweep,
+    ),
+    SampleConfig(
+        id="ellipse_rotation",
+        level=1,
+        category="foundations",
+        name="Ellipse Rotation",
+        description="Fixed ellipse rotates 0° to 90° - intensity pattern rotates",
+        generator=gen_ellipse_rotation,
+    ),
+    # Ring/Annulus patterns
+    SampleConfig(
+        id="ring_aperture_radius_sweep",
+        level=1,
+        category="foundations",
+        name="Ring Aperture Radius Sweep",
+        description="Annular aperture - outer radius increases, shows Bessel-like patterns",
+        generator=gen_ring_aperture_radius_sweep,
+    ),
+    SampleConfig(
+        id="ring_aperture_width_sweep",
+        level=1,
+        category="foundations",
+        name="Ring Aperture Width Sweep",
+        description="Annular aperture - ring width increases from thin to thick",
+        generator=gen_ring_aperture_width_sweep,
+    ),
+    SampleConfig(
+        id="ring_target_radius_sweep",
+        level=1,
+        category="foundations",
+        name="Ring Target Radius Sweep",
+        description="Ring-shaped target - radius sweeps outward",
+        generator=gen_ring_target_radius_sweep,
+    ),
+    SampleConfig(
+        id="ring_target_width_sweep",
+        level=1,
+        category="foundations",
+        name="Ring Target Width Sweep",
+        description="Ring-shaped target - width increases, radius fixed",
+        generator=gen_ring_target_width_sweep,
+    ),
+    # Cylindrical lens variations
+    SampleConfig(
+        id="quadratic_cylindrical_x",
+        level=1,
+        category="foundations",
+        name="Cylindrical Lens (X)",
+        description="Quadratic phase in X only - creates line focus in Fourier plane",
+        generator=gen_quadratic_cylindrical_x,
+    ),
+    SampleConfig(
+        id="quadratic_cylindrical_y",
+        level=1,
+        category="foundations",
+        name="Cylindrical Lens (Y)",
+        description="Quadratic phase in Y only - line focus rotated 90°",
+        generator=gen_quadratic_cylindrical_y,
+    ),
+    # Multi-spot patterns
+    SampleConfig(
+        id="two_spots_separation_sweep",
+        level=1,
+        category="foundations",
+        name="Two Spots Separation Sweep",
+        description="Two spots - separation increases from close to far apart",
+        generator=gen_two_spots_separation_sweep,
+    ),
+    SampleConfig(
+        id="spot_size_sweep",
+        level=1,
+        category="foundations",
+        name="Spot Size Sweep",
+        description="Single centered spot - radius increases, inverse relationship in Fourier plane",
+        generator=gen_spot_size_sweep,
     ),
 ]
 

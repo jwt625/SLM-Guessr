@@ -130,14 +130,14 @@ def create_rectangular_slab_target(
 ) -> np.ndarray:
     """
     Create rectangular slab target.
-    
+
     Args:
         size: Grid size
         cx: Center x position (pixels from center)
         cy: Center y position (pixels from center)
         width: Rectangle width in pixels
         height: Rectangle height in pixels
-    
+
     Returns:
         Target amplitude
     """
@@ -147,6 +147,212 @@ def create_rectangular_slab_target(
     mask = (np.abs(X - cx) <= width // 2) & (np.abs(Y - cy) <= height // 2)
     target[mask] = 1.0
     return target
+
+
+def create_line_target(
+    size: int, cx: float, cy: float, width: int, orientation: str = 'vertical'
+) -> np.ndarray:
+    """
+    Create thin line target (vertical or horizontal).
+
+    Args:
+        size: Grid size
+        cx: Center x position (pixels from center)
+        cy: Center y position (pixels from center)
+        width: Line width in pixels
+        orientation: 'vertical' or 'horizontal'
+
+    Returns:
+        Target amplitude
+    """
+    x = np.arange(size) - size // 2
+    X, Y = np.meshgrid(x, x)
+    target = np.zeros((size, size))
+
+    if orientation == 'vertical':
+        mask = np.abs(X - cx) <= width // 2
+    else:  # horizontal
+        mask = np.abs(Y - cy) <= width // 2
+
+    target[mask] = 1.0
+    return target
+
+
+def create_band_target(
+    size: int, cx: float, cy: float, width: int, orientation: str = 'vertical',
+    profile: str = 'uniform'
+) -> np.ndarray:
+    """
+    Create band target with various intensity profiles.
+
+    Args:
+        size: Grid size
+        cx: Center x position (pixels from center)
+        cy: Center y position (pixels from center)
+        width: Band width in pixels
+        orientation: 'vertical' or 'horizontal'
+        profile: 'uniform' or 'half_sine'
+
+    Returns:
+        Target amplitude
+    """
+    x = np.arange(size) - size // 2
+    X, Y = np.meshgrid(x, x)
+    target = np.zeros((size, size))
+
+    if orientation == 'vertical':
+        dist = np.abs(X - cx)
+    else:  # horizontal
+        dist = np.abs(Y - cy)
+
+    mask = dist <= width // 2
+
+    if profile == 'uniform':
+        target[mask] = 1.0
+    elif profile == 'half_sine':
+        # Half-sine profile across the width
+        normalized_dist = dist / (width / 2)
+        target[mask] = np.cos(normalized_dist[mask] * np.pi / 2)
+
+    return target
+
+
+def create_ellipse_target(
+    size: int, cx: float, cy: float, radius_x: float, radius_y: float, angle: float = 0
+) -> np.ndarray:
+    """
+    Create elliptical target.
+
+    Args:
+        size: Grid size
+        cx: Center x position (pixels from center)
+        cy: Center y position (pixels from center)
+        radius_x: Semi-major axis in x
+        radius_y: Semi-minor axis in y
+        angle: Rotation angle in radians
+
+    Returns:
+        Target amplitude
+    """
+    x = np.arange(size) - size // 2
+    X, Y = np.meshgrid(x, x)
+
+    # Translate to center
+    Xt = X - cx
+    Yt = Y - cy
+
+    # Rotate
+    Xr = Xt * np.cos(angle) + Yt * np.sin(angle)
+    Yr = -Xt * np.sin(angle) + Yt * np.cos(angle)
+
+    # Ellipse equation
+    ellipse_eq = (Xr / radius_x)**2 + (Yr / radius_y)**2
+
+    target = np.zeros((size, size))
+    target[ellipse_eq <= 1.0] = 1.0
+    return target
+
+
+def create_ring_target(
+    size: int, cx: float, cy: float, inner_radius: float, outer_radius: float
+) -> np.ndarray:
+    """
+    Create ring (annulus) target.
+
+    Args:
+        size: Grid size
+        cx: Center x position (pixels from center)
+        cy: Center y position (pixels from center)
+        inner_radius: Inner radius in pixels
+        outer_radius: Outer radius in pixels
+
+    Returns:
+        Target amplitude
+    """
+    x = np.arange(size) - size // 2
+    X, Y = np.meshgrid(x, x)
+    r = np.sqrt((X - cx)**2 + (Y - cy)**2)
+
+    target = np.zeros((size, size))
+    mask = (r >= inner_radius) & (r <= outer_radius)
+    target[mask] = 1.0
+    return target
+
+
+def create_ring_aperture_phase(
+    size: int, inner_radius: float, outer_radius: float
+) -> np.ndarray:
+    """
+    Create ring aperture (annular mask) - returns phase for use with masked input.
+    This is used by multiplying input amplitude with the aperture mask.
+
+    Args:
+        size: Grid size
+        inner_radius: Inner radius in pixels
+        outer_radius: Outer radius in pixels
+
+    Returns:
+        Aperture mask (0 or 1)
+    """
+    x = np.arange(size) - size // 2
+    X, Y = np.meshgrid(x, x)
+    r = np.sqrt(X**2 + Y**2)
+
+    mask = np.zeros((size, size))
+    annulus = (r >= inner_radius) & (r <= outer_radius)
+    mask[annulus] = 1.0
+    return mask
+
+
+def create_cylindrical_lens_phase(
+    size: int, curvature: float, axis: str = 'x'
+) -> np.ndarray:
+    """
+    Create cylindrical lens phase (quadratic in one direction only).
+
+    Args:
+        size: Grid size
+        curvature: Curvature coefficient
+        axis: 'x' or 'y' - direction of curvature
+
+    Returns:
+        Phase mask wrapped to [-pi, pi]
+    """
+    x = np.linspace(-size // 2, size // 2, size)
+    X, Y = np.meshgrid(x, x)
+
+    if axis == 'x':
+        phase = curvature * X**2 / (size**2) * 4 * np.pi
+    else:  # y
+        phase = curvature * Y**2 / (size**2) * 4 * np.pi
+
+    return np.mod(phase + np.pi, 2 * np.pi) - np.pi
+
+
+def create_two_spots_target(
+    size: int, separation: float, angle: float = 0
+) -> np.ndarray:
+    """
+    Create two spots target.
+
+    Args:
+        size: Grid size
+        separation: Distance between spots (pixels)
+        angle: Angle of separation line (radians, 0 = horizontal)
+
+    Returns:
+        Target amplitude
+    """
+    half_sep = separation / 2
+    cx1 = half_sep * np.cos(angle)
+    cy1 = half_sep * np.sin(angle)
+    cx2 = -half_sep * np.cos(angle)
+    cy2 = -half_sep * np.sin(angle)
+
+    spot1 = create_spot_target(size, cx1, cy1, radius=4)
+    spot2 = create_spot_target(size, cx2, cy2, radius=4)
+
+    return np.maximum(spot1, spot2)
 
 
 # =============================================================================

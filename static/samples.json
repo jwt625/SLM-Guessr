@@ -161,6 +161,166 @@
       "parameters": {}
     },
     {
+      "id": "narrow_line_sweep_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Narrow Line Sweep (X)",
+      "description": "Thin vertical line sweeping horizontally - sharp sinc pattern",
+      "phase_gif": "assets/L1/narrow_line_sweep_x_phase.gif",
+      "intensity_gif": "assets/L1/narrow_line_sweep_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "narrow_line_sweep_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Narrow Line Sweep (Y)",
+      "description": "Thin horizontal line sweeping vertically - sharp sinc pattern",
+      "phase_gif": "assets/L1/narrow_line_sweep_y_phase.gif",
+      "intensity_gif": "assets/L1/narrow_line_sweep_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "wide_band_sweep_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Wide Band Sweep (X)",
+      "description": "Thick vertical band sweeping horizontally - broader sinc envelope",
+      "phase_gif": "assets/L1/wide_band_sweep_x_phase.gif",
+      "intensity_gif": "assets/L1/wide_band_sweep_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "wide_band_sweep_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Wide Band Sweep (Y)",
+      "description": "Thick horizontal band sweeping vertically - broader sinc envelope",
+      "phase_gif": "assets/L1/wide_band_sweep_y_phase.gif",
+      "intensity_gif": "assets/L1/wide_band_sweep_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "half_sine_band_sweep_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Half-Sine Band Sweep (X)",
+      "description": "Vertical band with half-sine profile - reduced sidelobes vs rectangular",
+      "phase_gif": "assets/L1/half_sine_band_sweep_x_phase.gif",
+      "intensity_gif": "assets/L1/half_sine_band_sweep_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "half_sine_band_sweep_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Half-Sine Band Sweep (Y)",
+      "description": "Horizontal band with half-sine profile - smoother than rectangular",
+      "phase_gif": "assets/L1/half_sine_band_sweep_y_phase.gif",
+      "intensity_gif": "assets/L1/half_sine_band_sweep_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "disk_aspect_ratio_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Disk Aspect Ratio Sweep",
+      "description": "Disk morphs from circle to ellipse - Airy pattern deforms",
+      "phase_gif": "assets/L1/disk_aspect_ratio_sweep_phase.gif",
+      "intensity_gif": "assets/L1/disk_aspect_ratio_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "ellipse_rotation",
+      "level": 1,
+      "category": "foundations",
+      "name": "Ellipse Rotation",
+      "description": "Fixed ellipse rotates 0° to 90° - intensity pattern rotates",
+      "phase_gif": "assets/L1/ellipse_rotation_phase.gif",
+      "intensity_gif": "assets/L1/ellipse_rotation_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "ring_aperture_radius_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Ring Aperture Radius Sweep",
+      "description": "Annular aperture - ring radius increases with constant width, random phase outside scrambles light",
+      "phase_gif": "assets/L1/ring_aperture_radius_sweep_phase.gif",
+      "intensity_gif": "assets/L1/ring_aperture_radius_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "ring_aperture_width_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Ring Aperture Width Sweep",
+      "description": "Annular aperture - ring width increases, random phase outside blocks unwanted light",
+      "phase_gif": "assets/L1/ring_aperture_width_sweep_phase.gif",
+      "intensity_gif": "assets/L1/ring_aperture_width_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "ring_target_radius_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Ring Target Radius Sweep",
+      "description": "Ring-shaped target - radius sweeps outward",
+      "phase_gif": "assets/L1/ring_target_radius_sweep_phase.gif",
+      "intensity_gif": "assets/L1/ring_target_radius_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "ring_target_width_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Ring Target Width Sweep",
+      "description": "Ring-shaped target - width increases, radius fixed",
+      "phase_gif": "assets/L1/ring_target_width_sweep_phase.gif",
+      "intensity_gif": "assets/L1/ring_target_width_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "quadratic_cylindrical_x",
+      "level": 1,
+      "category": "foundations",
+      "name": "Cylindrical Lens (X)",
+      "description": "Quadratic phase in X only - creates line focus in Fourier plane",
+      "phase_gif": "assets/L1/quadratic_cylindrical_x_phase.gif",
+      "intensity_gif": "assets/L1/quadratic_cylindrical_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "quadratic_cylindrical_y",
+      "level": 1,
+      "category": "foundations",
+      "name": "Cylindrical Lens (Y)",
+      "description": "Quadratic phase in Y only - line focus rotated 90°",
+      "phase_gif": "assets/L1/quadratic_cylindrical_y_phase.gif",
+      "intensity_gif": "assets/L1/quadratic_cylindrical_y_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "two_spots_separation_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Two Spots Separation Sweep",
+      "description": "Two spots - separation increases from close to far apart",
+      "phase_gif": "assets/L1/two_spots_separation_sweep_phase.gif",
+      "intensity_gif": "assets/L1/two_spots_separation_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spot_size_sweep",
+      "level": 1,
+      "category": "foundations",
+      "name": "Spot Size Sweep",
+      "description": "Single centered spot - radius increases, inverse relationship in Fourier plane",
+      "phase_gif": "assets/L1/spot_size_sweep_phase.gif",
+      "intensity_gif": "assets/L1/spot_size_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
       "id": "binary_grating_vertical",
       "level": 2,
       "category": "periodic",
@@ -241,6 +401,6 @@
       "parameters": {}
     }
   ],
-  "generated_at": "2026-01-19T23:11:39.633518",
+  "generated_at": "2026-01-21T00:00:00.000000",
   "version": "1.0.0"
 }
