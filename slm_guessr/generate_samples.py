@@ -33,6 +33,11 @@ def main():
         help="Sample IDs to generate (default: all)"
     )
     parser.add_argument(
+        "--level",
+        type=int,
+        help="Generate only samples from specific level (1-7)"
+    )
+    parser.add_argument(
         "--list", "-l",
         action="store_true",
         help="List available sample IDs"
@@ -59,6 +64,12 @@ def main():
     if args.samples:
         # Generate selected samples only
         manifest = generate_selected_samples(output_dir, args.samples)
+    elif args.level:
+        # Generate samples from specific level
+        level_samples = [s for s in all_samples if s.level == args.level]
+        sample_ids = [s.id for s in level_samples]
+        print(f"Generating {len(sample_ids)} samples from Level {args.level}...")
+        manifest = generate_selected_samples(output_dir, sample_ids)
     else:
         # Generate all samples
         manifest = generate_all_samples(output_dir)

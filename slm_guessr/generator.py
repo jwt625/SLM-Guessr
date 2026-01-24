@@ -62,8 +62,16 @@ from .patterns_L3 import (
     create_random_spot_positions,
 )
 
+from .patterns_L4 import (
+    create_vortex_phase,
+    create_axicon_phase,
+    create_laguerre_gaussian_phase,
+    create_laguerre_gaussian_target,
+    create_bessel_target,
+)
+
 # Use PIL for GIF generation
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 
 GRID_SIZE = 256
@@ -82,6 +90,7 @@ class SampleConfig:
     generator: Callable  # Function that returns list of (phase, intensity) frames
     parameters: dict = None
     duration_ms: int = None  # Override GIF frame duration (default: GIF_DURATION_MS)
+    intensity_zoom: float = None  # Zoom factor for intensity images (e.g., 5.0 for 5x zoom)
 
 
 def normalize_for_image(arr: np.ndarray, is_phase: bool = False) -> np.ndarray:
@@ -99,8 +108,112 @@ def normalize_for_image(arr: np.ndarray, is_phase: bool = False) -> np.ndarray:
     return (normalized * 255).astype(np.uint8)
 
 
-def save_gif(frames: List[np.ndarray], path: Path, is_phase: bool = False):
-    """Save list of arrays as animated GIF."""
+def apply_zoom_to_array(arr: np.ndarray, zoom_factor: float) -> np.ndarray:
+    """
+    Zoom into center of array by extracting central region.
+
+    Args:
+        arr: Input array
+        zoom_factor: Zoom factor (e.g., 5.0 for 5x zoom)
+
+    Returns:
+        Zoomed array (same size as input, interpolated)
+    """
+    size = arr.shape[0]
+    crop_size = int(size / zoom_factor)
+
+    # Extract center region
+    center = size // 2
+    half_crop = crop_size // 2
+    cropped = arr[center - half_crop:center + half_crop,
+                  center - half_crop:center + half_crop]
+
+    # Resize back to original size using PIL for better quality
+    from scipy.ndimage import zoom
+    zoomed = zoom(cropped, zoom_factor, order=1)
+
+    # Ensure output is same size as input
+    if zoomed.shape[0] != size:
+        # Crop or pad to exact size
+        if zoomed.shape[0] > size:
+            excess = (zoomed.shape[0] - size) // 2
+            zoomed = zoomed[excess:excess+size, excess:excess+size]
+        else:
+            pad = (size - zoomed.shape[0]) // 2
+            zoomed = np.pad(zoomed, ((pad, size - zoomed.shape[0] - pad),
+                                     (pad, size - zoomed.shape[1] - pad)),
+                           mode='constant')
+
+    return zoomed
+
+
+def add_text_to_image(img: Image.Image, text: str, position: str = "top-right") -> Image.Image:
+    """
+    Add text label to image.
+
+    Args:
+        img: PIL Image
+        text: Text to add
+        position: Position ("top-right", "top-left", etc.)
+
+    Returns:
+        Image with text added
+    """
+    img = img.copy()
+    draw = ImageDraw.Draw(img)
+
+    # Try to use a default font, fall back to basic if not available
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 12)
+    except:
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+        except:
+            font = ImageFont.load_default()
+
+    # Get text bounding box
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Calculate position
+    margin = 5
+    if position == "top-right":
+        x = img.width - text_width - margin
+        y = margin
+    elif position == "top-left":
+        x = margin
+        y = margin
+    else:
+        x = margin
+        y = margin
+
+    # Draw text with outline for visibility
+    outline_color = (80, 80, 80)  # Dark gray
+    text_color = (200, 200, 200)  # Light gray
+
+    # Draw outline
+    for dx in [-1, 0, 1]:
+        for dy in [-1, 0, 1]:
+            if dx != 0 or dy != 0:
+                draw.text((x + dx, y + dy), text, font=font, fill=outline_color)
+
+    # Draw main text
+    draw.text((x, y), text, font=font, fill=text_color)
+
+    return img
+
+
+def save_gif(frames: List[np.ndarray], path: Path, is_phase: bool = False, zoom_factor: float = None):
+    """
+    Save list of arrays as animated GIF.
+
+    Args:
+        frames: List of 2D arrays to save
+        path: Output path
+        is_phase: Whether this is phase data (affects colormap)
+        zoom_factor: Optional zoom factor label to display (zoom is applied during intensity computation)
+    """
     images = []
     for frame in frames:
         img_data = normalize_for_image(frame, is_phase)
@@ -143,6 +256,12 @@ def save_gif(frames: List[np.ndarray], path: Path, is_phase: bool = False):
                 b = int(min(255, max(0, (t - 0.67) * 3 * 255)))
                 palette.extend([r, g, b])
             img.putpalette(palette)
+
+            # Add zoom label if zoomed
+            if zoom_factor is not None and zoom_factor > 1.0:
+                img = img.convert('RGB')  # Convert to RGB for text overlay
+                img = add_text_to_image(img, f"{zoom_factor:.1f}x", position="top-right")
+
         images.append(img)
 
     if len(images) == 1:
@@ -171,8 +290,14 @@ def generate_sample(
     level_dir = output_dir / f"L{config.level}"
     level_dir.mkdir(parents=True, exist_ok=True)
 
-    # Generate frames
-    frames = config.generator(input_amp)
+    # Generate frames - pass zoom to generator if it accepts it
+    import inspect
+    sig = inspect.signature(config.generator)
+    if 'zoom' in sig.parameters:
+        frames = config.generator(input_amp, zoom=config.intensity_zoom or 1.0)
+    else:
+        frames = config.generator(input_amp)
+
     phase_frames = [f[0] for f in frames]
     intensity_frames = [f[1] for f in frames]
 
@@ -181,7 +306,7 @@ def generate_sample(
     intensity_path = level_dir / f"{config.id}_intensity.gif"
 
     save_gif(phase_frames, phase_path, is_phase=True)
-    save_gif(intensity_frames, intensity_path, is_phase=False)
+    save_gif(intensity_frames, intensity_path, is_phase=False, zoom_factor=config.intensity_zoom)
 
     return {
         "id": config.id,
@@ -1905,9 +2030,501 @@ L3_SAMPLES = [
 ]
 
 
+# =============================================================================
+# Level 4: Special Beams - Frame Generators
+# =============================================================================
+
+def gen_vortex_charge_sweep(input_amp: np.ndarray, zoom: float = 1.0):
+    """Vortex beam with topological charge sweeping from 1 to 5."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        charge = 1 + int(4 * i / (n_frames - 1))  # 1, 2, 3, 4, 5
+        phase = create_vortex_phase(GRID_SIZE, charge)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_charge_1_rotation(input_amp: np.ndarray, zoom: float = 1.0):
+    """Vortex charge l=1 with phase offset rotation."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        phase_offset = 2 * np.pi * i / n_frames
+        phase = create_vortex_phase(GRID_SIZE, charge=1, phase_offset=phase_offset)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_charge_2(input_amp: np.ndarray, zoom: float = 1.0):
+    """Vortex charge l=2 with rotation animation."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        phase_offset = 2 * np.pi * i / n_frames
+        phase = create_vortex_phase(GRID_SIZE, charge=2, phase_offset=phase_offset)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_charge_3(input_amp: np.ndarray, zoom: float = 1.0):
+    """Vortex charge l=3 with rotation animation."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        phase_offset = 2 * np.pi * i / n_frames
+        phase = create_vortex_phase(GRID_SIZE, charge=3, phase_offset=phase_offset)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_opposite_charges(input_amp: np.ndarray, zoom: float = 1.0):
+    """Two vortices with opposite charges at different positions."""
+    frames = []
+    n_frames = 32  # Extended from 16 to 32
+    for i in range(n_frames):
+        separation = 20 + 40 * i / (n_frames - 1)  # 20 to 60 pixels
+        phase1 = create_vortex_phase(GRID_SIZE, charge=2, cx=-separation/2, cy=0)
+        phase2 = create_vortex_phase(GRID_SIZE, charge=-2, cx=separation/2, cy=0)
+        phase = np.mod(phase1 + phase2 + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_nested_vortex(input_amp: np.ndarray, zoom: float = 1.0):
+    """Nested vortex structure with radius sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        radius = 20 + 40 * i / (n_frames - 1)  # 20 to 60 pixels
+        x = np.arange(GRID_SIZE) - GRID_SIZE // 2
+        X, Y = np.meshgrid(x, x)
+        r = np.sqrt(X**2 + Y**2)
+
+        # Inner vortex l=1, outer vortex l=2
+        phase_inner = create_vortex_phase(GRID_SIZE, charge=1)
+        phase_outer = create_vortex_phase(GRID_SIZE, charge=2)
+        phase = np.where(r < radius, phase_inner, phase_outer)
+
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_axicon_slope_sweep(input_amp: np.ndarray, zoom: float = 1.0):
+    """Axicon with conical slope increasing."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        slope = 0.01 + 0.09 * i / (n_frames - 1)  # 0.01 to 0.1
+        phase = create_axicon_phase(GRID_SIZE, slope)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_bessel_order_0(input_amp: np.ndarray, zoom: float = 1.0):
+    """Zero-order Bessel beam with slope variation."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        slope = 0.03 + 0.04 * i / (n_frames - 1)  # 0.03 to 0.07
+        phase = create_axicon_phase(GRID_SIZE, slope=slope)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_bessel_order_1(input_amp: np.ndarray, zoom: float = 1.0):
+    """First-order Bessel beam with rotation animation."""
+    frames = []
+    n_frames = 24
+    phase_axicon = create_axicon_phase(GRID_SIZE, slope=0.05)
+    for i in range(n_frames):
+        phase_offset = 2 * np.pi * i / n_frames
+        phase_vortex = create_vortex_phase(GRID_SIZE, charge=1, phase_offset=phase_offset)
+        phase = np.mod(phase_axicon + phase_vortex + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_axicon_truncated(input_amp: np.ndarray, zoom: float = 1.0):
+    """Axicon with aperture size sweep."""
+    frames = []
+    n_frames = 32  # Extended from 16 to 32
+    for i in range(n_frames):
+        aperture_radius = 40 + 60 * i / (n_frames - 1)  # 40 to 100 pixels
+        phase = create_axicon_phase(GRID_SIZE, slope=0.05)
+
+        # Apply circular aperture
+        x = np.arange(GRID_SIZE) - GRID_SIZE // 2
+        X, Y = np.meshgrid(x, x)
+        r = np.sqrt(X**2 + Y**2)
+        phase = np.where(r <= aperture_radius, phase, 0)
+
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_lg_radial_sweep(input_amp: np.ndarray, zoom: float = 1.0):
+    """Laguerre-Gaussian with radial index p sweeping 0 to 3."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        p = int(3 * i / (n_frames - 1))  # 0, 1, 2, 3
+        phase = create_laguerre_gaussian_phase(GRID_SIZE, p=p, l=0)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_lg_azimuthal_sweep(input_amp: np.ndarray, zoom: float = 1.0):
+    """Laguerre-Gaussian with azimuthal index l sweeping 0 to 4."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        l = int(4 * i / (n_frames - 1))  # 0, 1, 2, 3, 4
+        phase = create_laguerre_gaussian_phase(GRID_SIZE, p=0, l=l)
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_lg_p1_l1(input_amp: np.ndarray, zoom: float = 1.0):
+    """Laguerre-Gaussian LG(1,1) mode with rotation animation."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        phase_offset = 2 * np.pi * i / n_frames
+        phase = create_laguerre_gaussian_phase(GRID_SIZE, p=1, l=1)
+        # Add rotation by offsetting the vortex component
+        x = np.arange(GRID_SIZE) - GRID_SIZE // 2
+        X, Y = np.meshgrid(x, x)
+        theta = np.arctan2(Y, X)
+        phase = phase + 1 * phase_offset  # Rotate the l=1 component
+        phase = np.mod(phase + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_lg_p2_l2(input_amp: np.ndarray, zoom: float = 1.0):
+    """Laguerre-Gaussian LG(2,2) mode with rotation animation."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        phase_offset = 2 * np.pi * i / n_frames
+        phase = create_laguerre_gaussian_phase(GRID_SIZE, p=2, l=2)
+        # Add rotation by offsetting the vortex component
+        phase = phase + 2 * phase_offset  # Rotate the l=2 component
+        phase = np.mod(phase + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_plus_lens(input_amp: np.ndarray, zoom: float = 1.0):
+    """Vortex l=2 plus quadratic lens with curvature sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        curvature = 0.5 + 2.5 * i / (n_frames - 1)  # 0.5 to 3.0
+        phase_vortex = create_vortex_phase(GRID_SIZE, charge=2)
+        phase_lens = create_quadratic_phase(GRID_SIZE, curvature)
+        phase = np.mod(phase_vortex + phase_lens + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_plus_grating(input_amp: np.ndarray, zoom: float = 1.0):
+    """Vortex l=1 plus binary grating with period sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        period = 64 - 48 * i / (n_frames - 1)  # 64 to 16 pixels
+        phase_vortex = create_vortex_phase(GRID_SIZE, charge=1)
+        phase_grating = create_binary_grating(GRID_SIZE, period=period, angle=0)
+        phase = np.mod(phase_vortex + phase_grating + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_plus_tilt(input_amp: np.ndarray, zoom: float = 1.0):
+    """Vortex l=2 plus linear tilt with angle sweep."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        angle = 2 * np.pi * i / n_frames
+        kx = 0.05 * np.cos(angle)
+        ky = 0.05 * np.sin(angle)
+        phase_vortex = create_vortex_phase(GRID_SIZE, charge=2)
+        phase_tilt = create_linear_ramp(GRID_SIZE, kx=kx, ky=ky)
+        phase = np.mod(phase_vortex + phase_tilt + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_double_vortex_separation(input_amp: np.ndarray, zoom: float = 1.0):
+    """Two vortices l=1 with increasing separation."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        separation = 10 + 60 * i / (n_frames - 1)  # 10 to 70 pixels
+        phase1 = create_vortex_phase(GRID_SIZE, charge=1, cx=-separation/2, cy=0)
+        phase2 = create_vortex_phase(GRID_SIZE, charge=1, cx=separation/2, cy=0)
+        phase = np.mod(phase1 + phase2 + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_vortex_array_2x2(input_amp: np.ndarray, zoom: float = 1.0):
+    """2x2 array of vortices with synchronized rotation."""
+    frames = []
+    n_frames = 24
+    spacing = 40
+    charges = [1, -1, -1, 1]  # Alternating pattern
+    positions = [
+        (-spacing/2, -spacing/2),
+        (spacing/2, -spacing/2),
+        (-spacing/2, spacing/2),
+        (spacing/2, spacing/2),
+    ]
+
+    for i in range(n_frames):
+        phase_offset = 2 * np.pi * i / n_frames
+        phase = np.zeros((GRID_SIZE, GRID_SIZE))
+        for (cx, cy), charge in zip(positions, charges):
+            phase += create_vortex_phase(GRID_SIZE, charge=charge, cx=cx, cy=cy, phase_offset=phase_offset)
+
+        phase = np.mod(phase + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+def gen_axicon_plus_vortex(input_amp: np.ndarray, zoom: float = 1.0):
+    """Axicon plus vortex with charge sweep (high-order Bessel beams)."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        charge = int(3 * i / (n_frames - 1))  # 0, 1, 2, 3
+        phase_axicon = create_axicon_phase(GRID_SIZE, slope=0.05)
+        phase_vortex = create_vortex_phase(GRID_SIZE, charge=charge)
+        phase = np.mod(phase_axicon + phase_vortex + np.pi, 2 * np.pi) - np.pi
+        intensity = compute_intensity(input_amp, phase, zoom=zoom)
+        frames.append((phase, intensity))
+    return frames
+
+
+# =============================================================================
+# Level 4 Sample Configurations
+# =============================================================================
+
+L4_SAMPLES = [
+    # Vortex Beams
+    SampleConfig(
+        id="vortex_charge_sweep",
+        level=4,
+        category="special_beams",
+        name="Vortex Charge Sweep",
+        description="Optical vortex with topological charge l=1→5 - donut radius increases with charge",
+        generator=gen_vortex_charge_sweep,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="vortex_charge_1_rotation",
+        level=4,
+        category="special_beams",
+        name="Vortex Charge 1 Rotation",
+        description="Vortex l=1 with phase offset rotation - shows phase singularity at center",
+        generator=gen_vortex_charge_1_rotation,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="vortex_charge_2",
+        level=4,
+        category="special_beams",
+        name="Vortex Charge 2",
+        description="Vortex l=2 with rotation - higher-order orbital angular momentum",
+        generator=gen_vortex_charge_2,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="vortex_charge_3",
+        level=4,
+        category="special_beams",
+        name="Vortex Charge 3",
+        description="Vortex l=3 with rotation - demonstrates spiral phase structure",
+        generator=gen_vortex_charge_3,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="vortex_opposite_charges",
+        level=4,
+        category="special_beams",
+        name="Opposite Charge Vortices",
+        description="Two vortices l=+2 and l=-2 with separation sweep - OAM interference and cancellation",
+        generator=gen_vortex_opposite_charges,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="nested_vortex",
+        level=4,
+        category="special_beams",
+        name="Nested Vortex",
+        description="Nested vortex structure (l=1 inside, l=2 outside) - radius sweep",
+        generator=gen_nested_vortex,
+        intensity_zoom=5.0,
+    ),
+
+    # Axicon/Bessel Beams
+    SampleConfig(
+        id="axicon_slope_sweep",
+        level=4,
+        category="special_beams",
+        name="Axicon Slope Sweep",
+        description="Conical phase with increasing slope - Bessel ring spacing decreases",
+        generator=gen_axicon_slope_sweep,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="bessel_order_0",
+        level=4,
+        category="special_beams",
+        name="Bessel Beam Order 0",
+        description="Zero-order Bessel beam with slope variation - ring spacing changes",
+        generator=gen_bessel_order_0,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="bessel_order_1",
+        level=4,
+        category="special_beams",
+        name="Bessel Beam Order 1",
+        description="First-order Bessel beam with rotation - dark center with bright ring (axicon + vortex)",
+        generator=gen_bessel_order_1,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="axicon_truncated",
+        level=4,
+        category="special_beams",
+        name="Truncated Axicon",
+        description="Axicon with aperture size sweep - extended animation showing transition to Bessel pattern",
+        generator=gen_axicon_truncated,
+        intensity_zoom=5.0,
+    ),
+
+    # Laguerre-Gaussian Beams
+    SampleConfig(
+        id="lg_radial_sweep",
+        level=4,
+        category="special_beams",
+        name="LG Radial Index Sweep",
+        description="Laguerre-Gaussian p=0→3, l=0 - radial ring count increases",
+        generator=gen_lg_radial_sweep,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="lg_azimuthal_sweep",
+        level=4,
+        category="special_beams",
+        name="LG Azimuthal Index Sweep",
+        description="Laguerre-Gaussian l=0→4, p=0 - Gaussian to vortex transition",
+        generator=gen_lg_azimuthal_sweep,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="lg_p1_l1",
+        level=4,
+        category="special_beams",
+        name="LG(1,1) Mode",
+        description="Laguerre-Gaussian mode with p=1, l=1 and rotation - radial and azimuthal structure",
+        generator=gen_lg_p1_l1,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="lg_p2_l2",
+        level=4,
+        category="special_beams",
+        name="LG(2,2) Mode",
+        description="Laguerre-Gaussian mode with p=2, l=2 and rotation - higher-order mode",
+        generator=gen_lg_p2_l2,
+        intensity_zoom=5.0,
+    ),
+
+    # Compound Beams
+    SampleConfig(
+        id="vortex_plus_lens",
+        level=4,
+        category="special_beams",
+        name="Vortex + Lens",
+        description="Vortex l=2 plus quadratic lens - focused vortex beam, curvature sweep",
+        generator=gen_vortex_plus_lens,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="vortex_plus_grating",
+        level=4,
+        category="special_beams",
+        name="Vortex + Grating",
+        description="Vortex l=1 plus binary grating - OAM transferred to diffraction orders",
+        generator=gen_vortex_plus_grating,
+        intensity_zoom=3.0,
+    ),
+    SampleConfig(
+        id="vortex_plus_tilt",
+        level=4,
+        category="special_beams",
+        name="Vortex + Tilt",
+        description="Vortex l=2 plus linear tilt - off-axis vortex beam, angle sweep",
+        generator=gen_vortex_plus_tilt,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="double_vortex_separation",
+        level=4,
+        category="special_beams",
+        name="Double Vortex Separation",
+        description="Two l=1 vortices with increasing separation - vortex interaction",
+        generator=gen_double_vortex_separation,
+        intensity_zoom=5.0,
+    ),
+    SampleConfig(
+        id="vortex_array_2x2",
+        level=4,
+        category="special_beams",
+        name="Vortex Array 2x2",
+        description="2×2 array of vortices with alternating charges ±1 and synchronized rotation - complex OAM field",
+        generator=gen_vortex_array_2x2,
+        intensity_zoom=3.0,
+    ),
+    SampleConfig(
+        id="axicon_plus_vortex",
+        level=4,
+        category="special_beams",
+        name="Axicon + Vortex",
+        description="Axicon plus vortex charge sweep l=0→3 - high-order Bessel beams",
+        generator=gen_axicon_plus_vortex,
+        intensity_zoom=5.0,
+    ),
+]
+
+
 def get_all_samples() -> List[SampleConfig]:
     """Get all sample configurations."""
-    return L1_SAMPLES + L2_SAMPLES + L3_SAMPLES
+    return L1_SAMPLES + L2_SAMPLES + L3_SAMPLES + L4_SAMPLES
 
 
 def generate_selected_samples(output_dir: Path, sample_ids: List[str]) -> dict:

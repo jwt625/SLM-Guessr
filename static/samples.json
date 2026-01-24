@@ -719,8 +719,208 @@
       "phase_gif": "assets/L3/spots_dense_cluster_phase.gif",
       "intensity_gif": "assets/L3/spots_dense_cluster_intensity.gif",
       "parameters": {}
+    },
+    {
+      "id": "vortex_charge_sweep",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex Charge Sweep",
+      "description": "Optical vortex with topological charge l=1\u21925 - donut radius increases with charge",
+      "phase_gif": "assets/L4/vortex_charge_sweep_phase.gif",
+      "intensity_gif": "assets/L4/vortex_charge_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_charge_1_rotation",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex Charge 1 Rotation",
+      "description": "Vortex l=1 with phase offset rotation - shows phase singularity at center",
+      "phase_gif": "assets/L4/vortex_charge_1_rotation_phase.gif",
+      "intensity_gif": "assets/L4/vortex_charge_1_rotation_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_charge_2",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex Charge 2",
+      "description": "Vortex l=2 with rotation - higher-order orbital angular momentum",
+      "phase_gif": "assets/L4/vortex_charge_2_phase.gif",
+      "intensity_gif": "assets/L4/vortex_charge_2_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_charge_3",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex Charge 3",
+      "description": "Vortex l=3 with rotation - demonstrates spiral phase structure",
+      "phase_gif": "assets/L4/vortex_charge_3_phase.gif",
+      "intensity_gif": "assets/L4/vortex_charge_3_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_opposite_charges",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Opposite Charge Vortices",
+      "description": "Two vortices l=+2 and l=-2 with separation sweep - OAM interference and cancellation",
+      "phase_gif": "assets/L4/vortex_opposite_charges_phase.gif",
+      "intensity_gif": "assets/L4/vortex_opposite_charges_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "nested_vortex",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Nested Vortex",
+      "description": "Nested vortex structure (l=1 inside, l=2 outside) - radius sweep",
+      "phase_gif": "assets/L4/nested_vortex_phase.gif",
+      "intensity_gif": "assets/L4/nested_vortex_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "axicon_slope_sweep",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Axicon Slope Sweep",
+      "description": "Conical phase with increasing slope - Bessel ring spacing decreases",
+      "phase_gif": "assets/L4/axicon_slope_sweep_phase.gif",
+      "intensity_gif": "assets/L4/axicon_slope_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "bessel_order_0",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Bessel Beam Order 0",
+      "description": "Zero-order Bessel beam with slope variation - ring spacing changes",
+      "phase_gif": "assets/L4/bessel_order_0_phase.gif",
+      "intensity_gif": "assets/L4/bessel_order_0_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "bessel_order_1",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Bessel Beam Order 1",
+      "description": "First-order Bessel beam with rotation - dark center with bright ring (axicon + vortex)",
+      "phase_gif": "assets/L4/bessel_order_1_phase.gif",
+      "intensity_gif": "assets/L4/bessel_order_1_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "axicon_truncated",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Truncated Axicon",
+      "description": "Axicon with aperture size sweep - extended animation showing transition to Bessel pattern",
+      "phase_gif": "assets/L4/axicon_truncated_phase.gif",
+      "intensity_gif": "assets/L4/axicon_truncated_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "lg_radial_sweep",
+      "level": 4,
+      "category": "special_beams",
+      "name": "LG Radial Index Sweep",
+      "description": "Laguerre-Gaussian p=0\u21923, l=0 - radial ring count increases",
+      "phase_gif": "assets/L4/lg_radial_sweep_phase.gif",
+      "intensity_gif": "assets/L4/lg_radial_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "lg_azimuthal_sweep",
+      "level": 4,
+      "category": "special_beams",
+      "name": "LG Azimuthal Index Sweep",
+      "description": "Laguerre-Gaussian l=0\u21924, p=0 - Gaussian to vortex transition",
+      "phase_gif": "assets/L4/lg_azimuthal_sweep_phase.gif",
+      "intensity_gif": "assets/L4/lg_azimuthal_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "lg_p1_l1",
+      "level": 4,
+      "category": "special_beams",
+      "name": "LG(1,1) Mode",
+      "description": "Laguerre-Gaussian mode with p=1, l=1 and rotation - radial and azimuthal structure",
+      "phase_gif": "assets/L4/lg_p1_l1_phase.gif",
+      "intensity_gif": "assets/L4/lg_p1_l1_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "lg_p2_l2",
+      "level": 4,
+      "category": "special_beams",
+      "name": "LG(2,2) Mode",
+      "description": "Laguerre-Gaussian mode with p=2, l=2 and rotation - higher-order mode",
+      "phase_gif": "assets/L4/lg_p2_l2_phase.gif",
+      "intensity_gif": "assets/L4/lg_p2_l2_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_plus_lens",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex + Lens",
+      "description": "Vortex l=2 plus quadratic lens - focused vortex beam, curvature sweep",
+      "phase_gif": "assets/L4/vortex_plus_lens_phase.gif",
+      "intensity_gif": "assets/L4/vortex_plus_lens_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_plus_grating",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex + Grating",
+      "description": "Vortex l=1 plus binary grating - OAM transferred to diffraction orders",
+      "phase_gif": "assets/L4/vortex_plus_grating_phase.gif",
+      "intensity_gif": "assets/L4/vortex_plus_grating_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_plus_tilt",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex + Tilt",
+      "description": "Vortex l=2 plus linear tilt - off-axis vortex beam, angle sweep",
+      "phase_gif": "assets/L4/vortex_plus_tilt_phase.gif",
+      "intensity_gif": "assets/L4/vortex_plus_tilt_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "double_vortex_separation",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Double Vortex Separation",
+      "description": "Two l=1 vortices with increasing separation - vortex interaction",
+      "phase_gif": "assets/L4/double_vortex_separation_phase.gif",
+      "intensity_gif": "assets/L4/double_vortex_separation_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "vortex_array_2x2",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Vortex Array 2x2",
+      "description": "2\u00d72 array of vortices with alternating charges \u00b11 and synchronized rotation - complex OAM field",
+      "phase_gif": "assets/L4/vortex_array_2x2_phase.gif",
+      "intensity_gif": "assets/L4/vortex_array_2x2_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "axicon_plus_vortex",
+      "level": 4,
+      "category": "special_beams",
+      "name": "Axicon + Vortex",
+      "description": "Axicon plus vortex charge sweep l=0\u21923 - high-order Bessel beams",
+      "phase_gif": "assets/L4/axicon_plus_vortex_phase.gif",
+      "intensity_gif": "assets/L4/axicon_plus_vortex_intensity.gif",
+      "parameters": {}
     }
   ],
-  "generated_at": "2026-01-20T22:50:32.158517",
+  "generated_at": "2026-01-24T13:02:00.664182",
   "version": "1.0.0"
 }

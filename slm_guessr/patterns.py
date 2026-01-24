@@ -495,7 +495,7 @@ def create_multi_frequency_grating(
 
 
 def compute_intensity(
-    input_amplitude: np.ndarray, phase_mask: np.ndarray
+    input_amplitude: np.ndarray, phase_mask: np.ndarray, zoom: float = 1.0
 ) -> np.ndarray:
     """
     Compute Fourier plane intensity from phase mask.
@@ -503,11 +503,33 @@ def compute_intensity(
     Args:
         input_amplitude: Input beam amplitude
         phase_mask: Phase mask in radians
+        zoom: Zoom factor for Fourier plane (>1 zooms in, showing smaller region with higher resolution)
 
     Returns:
         Intensity at Fourier plane
     """
     field = input_amplitude * np.exp(1j * phase_mask)
-    fourier_field = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(field)))
+
+    if zoom > 1.0:
+        # Zero-pad the field to increase Fourier plane resolution
+        # Padding by zoom factor gives zoom times finer sampling in Fourier space
+        size = field.shape[0]
+        padded_size = int(size * zoom)
+        pad_width = (padded_size - size) // 2
+
+        field_padded = np.pad(field, ((pad_width, pad_width), (pad_width, pad_width)),
+                             mode='constant', constant_values=0)
+
+        # Compute FFT on padded field
+        fourier_field = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(field_padded)))
+
+        # Extract central region (same size as original)
+        center = padded_size // 2
+        half_size = size // 2
+        fourier_field = fourier_field[center - half_size:center + half_size,
+                                     center - half_size:center + half_size]
+    else:
+        fourier_field = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(field)))
+
     return np.abs(fourier_field) ** 2
 
