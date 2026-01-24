@@ -23,8 +23,10 @@
 	// State
 	let gamePhase = $state<GamePhase>('setup');
 	let selectedMode = $state<QuizMode>('phase-to-intensity');
+	let selectedDifficulty = $state<'easy' | 'medium' | 'hard'>('easy');
 	let selectedQuestionCount = $state<number>(10);
 	let allSamples = $state<Sample[]>([]);
+	let filteredSamples = $state<Sample[]>([]);
 	let questions = $state<QuizQuestion[]>([]);
 	let currentQuestionIndex = $state(0);
 	let score = $state(0);
@@ -43,14 +45,25 @@
 	let streakBonus = $derived(Math.min(streak * STREAK_BONUS, MAX_STREAK_BONUS));
 	let formattedTime = $derived(formatTime(elapsedTimeMs));
 
+	// Filter samples based on difficulty
+	$effect(() => {
+		if (selectedDifficulty === 'easy') {
+			filteredSamples = allSamples.filter(s => s.level === 1 || s.level === 2);
+		} else if (selectedDifficulty === 'medium') {
+			filteredSamples = allSamples.filter(s => s.level === 3 || s.level === 4 || s.level === 5);
+		} else {
+			filteredSamples = allSamples.filter(s => s.level === 6 || s.level === 7);
+		}
+	});
+
 	onMount(async () => {
 		try {
 			const res = await fetch(`${base}/samples.json`);
 			if (!res.ok) throw new Error(`Failed to load samples: ${res.status}`);
 			const manifest: SampleManifest = await res.json();
-			// Filter to L1-L2 and exclude cubic samples
+			// Exclude cubic samples
 			allSamples = manifest.samples.filter(
-				s => (s.level === 1 || s.level === 2) && !EXCLUDED_SAMPLES.includes(s.id)
+				s => !EXCLUDED_SAMPLES.includes(s.id)
 			);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Unknown error';
@@ -97,7 +110,7 @@
 	}
 
 	function generateQuestions(): QuizQuestion[] {
-		const shuffledSamples = shuffleArray(allSamples);
+		const shuffledSamples = shuffleArray(filteredSamples);
 		const generatedQuestions: QuizQuestion[] = [];
 
 		for (let i = 0; i < selectedQuestionCount; i++) {
@@ -106,7 +119,7 @@
 
 			// Pick 3 wrong options (different from correct)
 			const wrongOptions = shuffleArray(
-				allSamples.filter(s => s.id !== correctSample.id)
+				filteredSamples.filter(s => s.id !== correctSample.id)
 			).slice(0, OPTIONS_PER_QUESTION - 1);
 
 			// Combine and shuffle options
@@ -215,10 +228,10 @@
 		<div class="error-state">
 			<p class="text-error">{error}</p>
 		</div>
-	{:else if allSamples.length < OPTIONS_PER_QUESTION}
+	{:else if filteredSamples.length < OPTIONS_PER_QUESTION}
 		<div class="error-state">
 			<p>Not enough samples available for quiz</p>
-			<p class="hint">Need at least {OPTIONS_PER_QUESTION} samples, found {allSamples.length}</p>
+			<p class="hint">Need at least {OPTIONS_PER_QUESTION} samples, found {filteredSamples.length}</p>
 		</div>
 	{:else if gamePhase === 'setup'}
 		<div class="setup">
@@ -248,18 +261,20 @@
 				<h2>Difficulty</h2>
 				<div class="options difficulty-options">
 					<button
-						class="option-btn small active"
+						class="option-btn small"
+						class:active={selectedDifficulty === 'easy'}
+						onclick={() => selectedDifficulty = 'easy'}
 					>
 						<span class="option-title">Easy</span>
 						<span class="option-desc">L1-L2</span>
 					</button>
 					<button
-						class="option-btn small disabled"
-						disabled
+						class="option-btn small"
+						class:active={selectedDifficulty === 'medium'}
+						onclick={() => selectedDifficulty = 'medium'}
 					>
 						<span class="option-title">Medium</span>
 						<span class="option-desc">L3-L5</span>
-						<span class="option-wip">WIP</span>
 					</button>
 					<button
 						class="option-btn small disabled"
