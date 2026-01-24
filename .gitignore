@@ -43,4 +43,9 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
-
+*.mp4
+*.mp3
+*.raw
+*.html
+*.txt
+*.png
