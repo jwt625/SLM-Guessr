@@ -291,3 +291,174 @@ Total: 40 GIF files
 - Blazed gratings maximize efficiency in specific order
 - Phase errors scatter light into background, reducing contrast
 
+---
+
+# DevLog 001-04: Level 3 - Discrete Spot Arrays
+
+**Date**: 2026-01-21
+**Status**: Complete
+**Objective**: Implement Level 3 with 20 GS-optimized spot array samples
+
+---
+
+## Overview
+
+Level 3 introduces Gerchberg-Saxton optimized discrete spot arrays. Unlike L1/L2 analytical patterns, L3 phase masks are computed via iterative optimization and appear noisy. This teaches users that complex target intensities require complex phase structures.
+
+---
+
+## Sample Plan (20 samples)
+
+### Regular Grid Arrays (6 samples)
+1. **grid_2x2_spacing_sweep**: 2x2 grid, spacing 20-60px, 16 frames
+2. **grid_3x3_spacing_sweep**: 3x3 grid, spacing 15-45px, 16 frames
+3. **grid_4x4_uniform**: 4x4 grid, fixed spacing 20px, single frame
+4. **grid_2x3_rectangular**: 2×3 grid, aspect ratio sweep, 16 frames
+5. **grid_3x3_rotation**: 3x3 grid rotates 0-45°, 24 frames
+6. **grid_size_progression**: 2x2 → 3x3 → 4x4 morph, 24 frames
+
+### Non-Uniform Brightness (4 samples)
+7. **spots_brightness_gradient_x**: 1×4 spots, brightness 1:2:3:4, 16 frames
+8. **spots_brightness_ratio_2x2**: 2x2 grid, corner brightness 1:1:1:1 → 4:1:1:1, 16 frames
+9. **spots_checkerboard_brightness**: 3x3 checkerboard bright/dim, ratio 1:1 → 3:1, 16 frames
+10. **spots_center_bright**: 3x3 grid, center brightness 1:1 → 5:1, 16 frames
+
+### Off-Center and Asymmetric (5 samples)
+11. **spots_diagonal_line**: 5 spots on diagonal, spacing sweep, 16 frames
+12. **spots_L_shape**: 6 spots forming L, rotation sweep, 16 frames
+13. **spots_circle_arrangement**: 8 spots on circle, radius sweep, 24 frames
+14. **spots_asymmetric_cross**: 5 spots (1 center + 4 arms), arm length sweep, 16 frames
+15. **spots_triangle_vertices**: 3 spots at triangle corners, rotation + scale, 24 frames
+
+### Random and Irregular Positions (3 samples)
+16. **spots_random_4**: 4 spots, 8 different random configurations, 8 frames
+17. **spots_random_6**: 6 spots, 8 different random configurations, 8 frames
+18. **spots_random_to_grid**: 4 spots morph random → 2x2 grid, 24 frames
+
+### Spot Size and Density Variations (2 samples)
+19. **spots_varying_size_3x3**: 3x3 grid, center=6px corners=3px, size ratio sweep, 16 frames
+20. **spots_dense_cluster**: 9 spots tightly clustered, cluster size sweep, 16 frames
+
+---
+
+## Technical Implementation
+
+### New Pattern Module (`slm_guessr/patterns_L3.py`)
+Create multi-spot target generation functions:
+- `create_grid_spots()`: Regular grid arrays
+- `create_spots_with_brightness()`: Non-uniform intensity spots
+- `create_spots_at_positions()`: Arbitrary position arrays
+- `create_random_spot_positions()`: Random position generation
+
+### Generator Functions (`slm_guessr/generator.py`)
+Add 20 generator functions using `standard_gs()` for phase optimization. All generators follow pattern:
+```python
+def gen_sample_name(input_amp: np.ndarray):
+    frames = []
+    for i in range(n_frames):
+        target = create_target_function(...)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+```
+
+### Key Parameters
+- Spot radius: 3-5 pixels (consistent with L1)
+- Grid spacing: 15-60 pixels
+- GS iterations: 50 (existing constant)
+- Frame counts: 8 (random), 16 (standard sweeps), 24 (rotations)
+- Category: `"spot_arrays"`
+
+---
+
+## Design Decisions
+
+### GS Optimization Introduction
+- First level to heavily use phase retrieval algorithms
+- Phase masks appear noisy compared to L1/L2 analytical patterns
+- Demonstrates that complex targets require complex phase structures
+- Sets foundation for L6 (complex shapes, images)
+
+### Progressive Complexity
+- Start with regular grids (familiar from L2 lattices)
+- Introduce non-uniform brightness (new concept)
+- Move to asymmetric arrangements (more challenging)
+- End with random positions (most complex, least structured phase)
+
+### Educational Value
+- Shows relationship between target complexity and phase complexity
+- Demonstrates GS algorithm capabilities and limitations
+- Bridges periodic structures (L2) and special beams (L4)
+
+---
+
+## Implementation Steps
+
+1. Create `slm_guessr/patterns_L3.py` with spot array generators
+2. Add 20 generator functions to `slm_guessr/generator.py`
+3. Add L3_SAMPLES list to `generator.py`
+4. Update `get_all_samples()` to include L3
+5. Generate GIFs: `python -m slm_guessr.generate_samples --level 3`
+6. Update manifest: `python update_manifest.py`
+7. Test in gallery and quiz modes
+
+---
+
+## Expected Outcomes
+
+**Total Samples**: 72 (32 L1 + 20 L2 + 20 L3)
+**L3 GIF Files**: 40 (20 samples × 2 GIFs each)
+**File Location**: `static/assets/L3/`
+
+---
+
+## Physics Concepts Demonstrated
+
+### Phase Retrieval
+- Iterative optimization to find phase for target intensity
+- Non-unique solutions (many phases can produce similar intensities)
+- Trade-off between uniformity and efficiency
+
+### Spot Array Characteristics
+- Regular grids show periodic phase structure
+- Random positions produce noisy phase masks
+- Non-uniform brightness requires weighted optimization
+- Tight spacing challenges GS convergence
+
+### Fourier Relationships
+- Spot spacing inversely related to phase period
+- Spot size inversely related to phase feature size
+- Array symmetry reflected in phase symmetry
+
+---
+
+## Implementation Complete
+
+**Date**: 2026-01-21
+
+All 20 L3 samples successfully generated and integrated.
+
+### Files Created
+- `slm_guessr/patterns_L3.py`: Multi-spot target generation functions
+- 20 generator functions added to `slm_guessr/generator.py`
+- L3_SAMPLES list with all 20 sample configurations
+- 40 GIF files in `static/assets/L3/` (20 samples × 2 GIFs each)
+
+### Current Project Status
+**Total Samples**: 72 (32 L1 + 20 L2 + 20 L3)
+**Total GIF Files**: 144
+**Manifest**: Updated with all 72 samples
+
+### Key Observations
+- GS-optimized phase masks appear noisy compared to L1/L2 analytical patterns
+- Regular grids show periodic phase structure
+- Random spot positions produce highly irregular phase masks
+- Non-uniform brightness requires phase to compensate for intensity variations
+- Tight spot spacing challenges GS convergence but still produces good results
+
+### Next Steps
+- Implement Level 4: Special Beams (vortex, axicon, compound beams)
+- Implement Level 5: Compound Patterns
+- Implement Level 6: Complex Targets (letters, shapes, images)
+- Consider adding more GS algorithm variants (weighted GS, random reset GS)
+

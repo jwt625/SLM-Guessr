@@ -56,6 +56,12 @@ from .patterns_L2 import (
     create_rings_and_sectors,
 )
 
+from .patterns_L3 import (
+    create_grid_spots,
+    create_spots_at_positions,
+    create_random_spot_positions,
+)
+
 # Use PIL for GIF generation
 from PIL import Image
 
@@ -1355,9 +1361,553 @@ L2_SAMPLES = [
 ]
 
 
+# =============================================================================
+# Level 3 Generator Functions: Discrete Spot Arrays
+# =============================================================================
+
+def gen_grid_2x2_spacing_sweep(input_amp: np.ndarray):
+    """2x2 grid with spacing sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        spacing = 20 + 40 * i / (n_frames - 1)  # 20 to 60 px
+        target = create_grid_spots(GRID_SIZE, 2, 2, spacing)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_grid_3x3_spacing_sweep(input_amp: np.ndarray):
+    """3x3 grid with spacing sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        spacing = 15 + 30 * i / (n_frames - 1)  # 15 to 45 px
+        target = create_grid_spots(GRID_SIZE, 3, 3, spacing)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_grid_4x4_uniform(input_amp: np.ndarray):
+    """4x4 grid with fixed spacing."""
+    target = create_grid_spots(GRID_SIZE, 4, 4, 20)
+    result = standard_gs(input_amp, target, GS_ITERATIONS)
+    return [(result.phase_mask, result.reconstructed)]
+
+
+def gen_grid_2x3_rectangular(input_amp: np.ndarray):
+    """2x3 rectangular grid with aspect ratio sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        spacing_x = 30
+        spacing_y = 20 + 30 * i / (n_frames - 1)  # 20 to 50 px
+        target = create_grid_spots(GRID_SIZE, 2, 3, spacing_x, spacing_y)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_grid_3x3_rotation(input_amp: np.ndarray):
+    """3x3 grid rotation."""
+    frames = []
+    n_frames = 24
+    spacing = 25
+    for i in range(n_frames):
+        angle = np.pi / 4 * i / (n_frames - 1)  # 0 to 45 degrees
+        # Generate rotated grid positions
+        positions = []
+        for row in range(3):
+            for col in range(3):
+                x = (col - 1) * spacing
+                y = (row - 1) * spacing
+                # Rotate
+                xr = x * np.cos(angle) - y * np.sin(angle)
+                yr = x * np.sin(angle) + y * np.cos(angle)
+                positions.append((xr, yr))
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_grid_size_progression(input_amp: np.ndarray):
+    """Grid size progression from 2x2 to 3x3 to 4x4."""
+    frames = []
+    spacing = 25
+
+    # 2x2 for 8 frames
+    for _ in range(8):
+        target = create_grid_spots(GRID_SIZE, 2, 2, spacing)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+
+    # 3x3 for 8 frames
+    for _ in range(8):
+        target = create_grid_spots(GRID_SIZE, 3, 3, spacing)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+
+    # 4x4 for 8 frames
+    for _ in range(8):
+        target = create_grid_spots(GRID_SIZE, 4, 4, spacing)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+
+    return frames
+
+
+def gen_spots_brightness_gradient_x(input_amp: np.ndarray):
+    """1x4 spots with horizontal brightness gradient."""
+    frames = []
+    n_frames = 16
+    spacing = 35
+    for i in range(n_frames):
+        # Rotate gradient direction
+        angle = np.pi / 2 * i / (n_frames - 1)  # 0 to 90 degrees
+        positions = []
+        brightness = []
+        for j in range(4):
+            x = (j - 1.5) * spacing
+            y = 0
+            # Rotate
+            xr = x * np.cos(angle) - y * np.sin(angle)
+            yr = x * np.sin(angle) + y * np.cos(angle)
+            positions.append((xr, yr))
+            brightness.append(j + 1)  # 1, 2, 3, 4
+        target = create_spots_at_positions(GRID_SIZE, positions, brightness=brightness)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_brightness_ratio_2x2(input_amp: np.ndarray):
+    """2x2 grid with one corner brightening."""
+    frames = []
+    n_frames = 16
+    spacing = 30
+    for i in range(n_frames):
+        ratio = 1 + 3 * i / (n_frames - 1)  # 1 to 4
+        brightness = np.array([[ratio, 1], [1, 1]])
+        target = create_grid_spots(GRID_SIZE, 2, 2, spacing, brightness=brightness)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_checkerboard_brightness(input_amp: np.ndarray):
+    """3x3 grid with checkerboard brightness pattern."""
+    frames = []
+    n_frames = 16
+    spacing = 25
+    for i in range(n_frames):
+        ratio = 1 + 2 * i / (n_frames - 1)  # 1 to 3
+        brightness = np.array([
+            [ratio, 1, ratio],
+            [1, ratio, 1],
+            [ratio, 1, ratio]
+        ])
+        target = create_grid_spots(GRID_SIZE, 3, 3, spacing, brightness=brightness)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_center_bright(input_amp: np.ndarray):
+    """3x3 grid with center spot brightening."""
+    frames = []
+    n_frames = 16
+    spacing = 25
+    for i in range(n_frames):
+        ratio = 1 + 4 * i / (n_frames - 1)  # 1 to 5
+        brightness = np.ones((3, 3))
+        brightness[1, 1] = ratio
+        target = create_grid_spots(GRID_SIZE, 3, 3, spacing, brightness=brightness)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_diagonal_line(input_amp: np.ndarray):
+    """5 spots along diagonal with spacing sweep."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        base_spacing = 15 + 25 * i / (n_frames - 1)  # 15 to 40 px
+        positions = []
+        for j in range(5):
+            offset = (j - 2) * base_spacing
+            positions.append((offset, offset))
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_L_shape(input_amp: np.ndarray):
+    """6 spots forming L shape with rotation."""
+    frames = []
+    n_frames = 16
+    spacing = 25
+    for i in range(n_frames):
+        angle = np.pi / 2 * i / (n_frames - 1)  # 0 to 90 degrees
+        positions = []
+        # Horizontal arm: 3 spots
+        for j in range(3):
+            x = j * spacing
+            y = 0
+            xr = x * np.cos(angle) - y * np.sin(angle)
+            yr = x * np.sin(angle) + y * np.cos(angle)
+            positions.append((xr, yr))
+        # Vertical arm: 3 spots (excluding corner)
+        for j in range(1, 3):
+            x = 0
+            y = j * spacing
+            xr = x * np.cos(angle) - y * np.sin(angle)
+            yr = x * np.sin(angle) + y * np.cos(angle)
+            positions.append((xr, yr))
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_circle_arrangement(input_amp: np.ndarray):
+    """8 spots arranged in circle with radius sweep."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        radius = 20 + 40 * i / (n_frames - 1)  # 20 to 60 px
+        positions = []
+        for j in range(8):
+            angle = 2 * np.pi * j / 8
+            cx = radius * np.cos(angle)
+            cy = radius * np.sin(angle)
+            positions.append((cx, cy))
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_asymmetric_cross(input_amp: np.ndarray):
+    """5 spots in cross pattern with asymmetric arm lengths."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        arm_length = 15 + 30 * i / (n_frames - 1)  # 15 to 45 px
+        positions = [
+            (0, 0),  # center
+            (arm_length, 0),  # right
+            (-arm_length * 0.7, 0),  # left (shorter)
+            (0, arm_length * 0.8),  # top
+            (0, -arm_length * 0.6),  # bottom (shorter)
+        ]
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_triangle_vertices(input_amp: np.ndarray):
+    """3 spots at triangle corners with rotation and scale."""
+    frames = []
+    n_frames = 24
+    for i in range(n_frames):
+        angle = 2 * np.pi * i / n_frames  # Full rotation
+        radius = 30 + 20 * np.sin(2 * np.pi * i / n_frames)  # 30 ± 20 px
+        positions = []
+        for j in range(3):
+            theta = angle + 2 * np.pi * j / 3
+            cx = radius * np.cos(theta)
+            cy = radius * np.sin(theta)
+            positions.append((cx, cy))
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_random_4(input_amp: np.ndarray):
+    """4 spots at random positions - different configurations."""
+    frames = []
+    n_frames = 8
+    for i in range(n_frames):
+        positions = create_random_spot_positions(4, GRID_SIZE, min_separation=20, seed=100+i)
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_random_6(input_amp: np.ndarray):
+    """6 spots at random positions - different configurations."""
+    frames = []
+    n_frames = 8
+    for i in range(n_frames):
+        positions = create_random_spot_positions(6, GRID_SIZE, min_separation=18, seed=200+i)
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_random_to_grid(input_amp: np.ndarray):
+    """4 spots morphing from random positions to 2x2 grid."""
+    frames = []
+    n_frames = 24
+
+    # Random start positions
+    random_pos = create_random_spot_positions(4, GRID_SIZE, min_separation=25, seed=300)
+
+    # Grid end positions
+    spacing = 30
+    grid_pos = [
+        (-spacing/2, -spacing/2),
+        (spacing/2, -spacing/2),
+        (-spacing/2, spacing/2),
+        (spacing/2, spacing/2),
+    ]
+
+    for i in range(n_frames):
+        t = i / (n_frames - 1)  # 0 to 1
+        positions = []
+        for (rx, ry), (gx, gy) in zip(random_pos, grid_pos):
+            cx = rx + t * (gx - rx)
+            cy = ry + t * (gy - ry)
+            positions.append((cx, cy))
+        target = create_spots_at_positions(GRID_SIZE, positions)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_varying_size_3x3(input_amp: np.ndarray):
+    """3x3 grid with varying spot sizes."""
+    frames = []
+    n_frames = 16
+    spacing = 25
+    for i in range(n_frames):
+        size_ratio = 1 + 1.5 * i / (n_frames - 1)  # 1 to 2.5
+        positions = []
+        radii = []
+        for row in range(3):
+            for col in range(3):
+                x = (col - 1) * spacing
+                y = (row - 1) * spacing
+                positions.append((x, y))
+                # Center spot larger, corners smaller
+                dist_from_center = np.sqrt((row - 1)**2 + (col - 1)**2)
+                if dist_from_center == 0:
+                    radii.append(int(6 * size_ratio))
+                elif dist_from_center < 1.5:
+                    radii.append(int(4.5 * size_ratio))
+                else:
+                    radii.append(int(3 * size_ratio))
+
+        # Create target with varying sizes
+        target = np.zeros((GRID_SIZE, GRID_SIZE))
+        x = np.arange(GRID_SIZE) - GRID_SIZE // 2
+        X, Y = np.meshgrid(x, x)
+        for (cx, cy), r in zip(positions, radii):
+            r2 = (X - cx)**2 + (Y - cy)**2
+            mask = r2 <= r**2
+            target[mask] = 1.0
+
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+def gen_spots_dense_cluster(input_amp: np.ndarray):
+    """9 spots tightly clustered with cluster size varying."""
+    frames = []
+    n_frames = 16
+    for i in range(n_frames):
+        spacing = 8 + 17 * i / (n_frames - 1)  # 8 to 25 px
+        target = create_grid_spots(GRID_SIZE, 3, 3, spacing, radius=3)
+        result = standard_gs(input_amp, target, GS_ITERATIONS)
+        frames.append((result.phase_mask, result.reconstructed))
+    return frames
+
+
+# =============================================================================
+# Level 3 Sample Configurations
+# =============================================================================
+
+L3_SAMPLES = [
+    # Regular Grid Arrays
+    SampleConfig(
+        id="grid_2x2_spacing_sweep",
+        level=3,
+        category="spot_arrays",
+        name="2x2 Grid Spacing Sweep",
+        description="Four spots in square grid - spacing increases, observe phase periodicity scaling",
+        generator=gen_grid_2x2_spacing_sweep,
+    ),
+    SampleConfig(
+        id="grid_3x3_spacing_sweep",
+        level=3,
+        category="spot_arrays",
+        name="3x3 Grid Spacing Sweep",
+        description="Nine spots in 3x3 grid - denser array shows finer phase structure",
+        generator=gen_grid_3x3_spacing_sweep,
+    ),
+    SampleConfig(
+        id="grid_4x4_uniform",
+        level=3,
+        category="spot_arrays",
+        name="4x4 Grid Uniform",
+        description="Sixteen spots in 4x4 grid - demonstrates GS handling of many spots",
+        generator=gen_grid_4x4_uniform,
+    ),
+    SampleConfig(
+        id="grid_2x3_rectangular",
+        level=3,
+        category="spot_arrays",
+        name="2x3 Rectangular Grid",
+        description="Non-square grid (2 rows, 3 columns) - asymmetric spacing in phase",
+        generator=gen_grid_2x3_rectangular,
+    ),
+    SampleConfig(
+        id="grid_3x3_rotation",
+        level=3,
+        category="spot_arrays",
+        name="3x3 Grid Rotation",
+        description="3x3 grid rotates 0 to 45 degrees - entire phase pattern rotates with spots",
+        generator=gen_grid_3x3_rotation,
+    ),
+    SampleConfig(
+        id="grid_size_progression",
+        level=3,
+        category="spot_arrays",
+        name="Grid Size Progression",
+        description="Grid grows from 2x2 to 3x3 to 4x4 - complexity increases",
+        generator=gen_grid_size_progression,
+    ),
+    # Non-Uniform Brightness
+    SampleConfig(
+        id="spots_brightness_gradient_x",
+        level=3,
+        category="spot_arrays",
+        name="Brightness Gradient (Rotating)",
+        description="Four spots with brightness gradient 1:2:3:4 - gradient direction rotates",
+        generator=gen_spots_brightness_gradient_x,
+    ),
+    SampleConfig(
+        id="spots_brightness_ratio_2x2",
+        level=3,
+        category="spot_arrays",
+        name="2x2 Brightness Ratio Sweep",
+        description="Four spots, one corner brightens - ratio sweeps from 1:1:1:1 to 4:1:1:1",
+        generator=gen_spots_brightness_ratio_2x2,
+    ),
+    SampleConfig(
+        id="spots_checkerboard_brightness",
+        level=3,
+        category="spot_arrays",
+        name="Checkerboard Brightness Pattern",
+        description="3x3 grid with alternating bright/dim spots - phase compensates for non-uniformity",
+        generator=gen_spots_checkerboard_brightness,
+    ),
+    SampleConfig(
+        id="spots_center_bright",
+        level=3,
+        category="spot_arrays",
+        name="Center Spot Brightening",
+        description="3x3 grid, center spot brightness increases - ratio 1:1 to 5:1",
+        generator=gen_spots_center_bright,
+    ),
+    # Off-Center and Asymmetric
+    SampleConfig(
+        id="spots_diagonal_line",
+        level=3,
+        category="spot_arrays",
+        name="Diagonal Line of Spots",
+        description="Five spots along diagonal - spacing increases from tight to wide",
+        generator=gen_spots_diagonal_line,
+    ),
+    SampleConfig(
+        id="spots_L_shape",
+        level=3,
+        category="spot_arrays",
+        name="L-Shaped Spot Array",
+        description="Six spots forming L shape - asymmetric arrangement rotates",
+        generator=gen_spots_L_shape,
+    ),
+    SampleConfig(
+        id="spots_circle_arrangement",
+        level=3,
+        category="spot_arrays",
+        name="Circular Arrangement",
+        description="Eight spots arranged in circle - radius sweeps from small to large",
+        generator=gen_spots_circle_arrangement,
+    ),
+    SampleConfig(
+        id="spots_asymmetric_cross",
+        level=3,
+        category="spot_arrays",
+        name="Asymmetric Cross",
+        description="Five spots in cross pattern - arms at different lengths extend outward",
+        generator=gen_spots_asymmetric_cross,
+    ),
+    SampleConfig(
+        id="spots_triangle_vertices",
+        level=3,
+        category="spot_arrays",
+        name="Triangle Vertices",
+        description="Three spots at triangle corners - triangle rotates and scales",
+        generator=gen_spots_triangle_vertices,
+    ),
+    # Random and Irregular Positions
+    SampleConfig(
+        id="spots_random_4",
+        level=3,
+        category="spot_arrays",
+        name="Four Random Spots",
+        description="Four spots at random positions - phase appears noisy, no obvious structure",
+        generator=gen_spots_random_4,
+    ),
+    SampleConfig(
+        id="spots_random_6",
+        level=3,
+        category="spot_arrays",
+        name="Six Random Spots",
+        description="Six spots randomly distributed - more complex phase optimization",
+        generator=gen_spots_random_6,
+    ),
+    SampleConfig(
+        id="spots_random_to_grid",
+        level=3,
+        category="spot_arrays",
+        name="Random to Grid Transition",
+        description="Four spots morph from random positions to 2x2 grid - watch phase organize",
+        generator=gen_spots_random_to_grid,
+    ),
+    # Spot Size and Density Variations
+    SampleConfig(
+        id="spots_varying_size_3x3",
+        level=3,
+        category="spot_arrays",
+        name="3x3 Varying Spot Sizes",
+        description="Nine spots with different radii - center largest, corners smallest",
+        generator=gen_spots_varying_size_3x3,
+    ),
+    SampleConfig(
+        id="spots_dense_cluster",
+        level=3,
+        category="spot_arrays",
+        name="Dense Spot Cluster",
+        description="Nine spots tightly clustered in center - tests GS resolution limits",
+        generator=gen_spots_dense_cluster,
+    ),
+]
+
+
 def get_all_samples() -> List[SampleConfig]:
     """Get all sample configurations."""
-    return L1_SAMPLES + L2_SAMPLES
+    return L1_SAMPLES + L2_SAMPLES + L3_SAMPLES
 
 
 def generate_selected_samples(output_dir: Path, sample_ids: List[str]) -> dict:

@@ -519,8 +519,208 @@
       "phase_gif": "assets/L2/rings_and_sectors_phase.gif",
       "intensity_gif": "assets/L2/rings_and_sectors_intensity.gif",
       "parameters": {}
+    },
+    {
+      "id": "grid_2x2_spacing_sweep",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "2x2 Grid Spacing Sweep",
+      "description": "Four spots in square grid - spacing increases, observe phase periodicity scaling",
+      "phase_gif": "assets/L3/grid_2x2_spacing_sweep_phase.gif",
+      "intensity_gif": "assets/L3/grid_2x2_spacing_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "grid_3x3_spacing_sweep",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "3x3 Grid Spacing Sweep",
+      "description": "Nine spots in 3x3 grid - denser array shows finer phase structure",
+      "phase_gif": "assets/L3/grid_3x3_spacing_sweep_phase.gif",
+      "intensity_gif": "assets/L3/grid_3x3_spacing_sweep_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "grid_4x4_uniform",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "4x4 Grid Uniform",
+      "description": "Sixteen spots in 4x4 grid - demonstrates GS handling of many spots",
+      "phase_gif": "assets/L3/grid_4x4_uniform_phase.gif",
+      "intensity_gif": "assets/L3/grid_4x4_uniform_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "grid_2x3_rectangular",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "2x3 Rectangular Grid",
+      "description": "Non-square grid (2 rows, 3 columns) - asymmetric spacing in phase",
+      "phase_gif": "assets/L3/grid_2x3_rectangular_phase.gif",
+      "intensity_gif": "assets/L3/grid_2x3_rectangular_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "grid_3x3_rotation",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "3x3 Grid Rotation",
+      "description": "3x3 grid rotates 0 to 45 degrees - entire phase pattern rotates with spots",
+      "phase_gif": "assets/L3/grid_3x3_rotation_phase.gif",
+      "intensity_gif": "assets/L3/grid_3x3_rotation_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "grid_size_progression",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Grid Size Progression",
+      "description": "Grid grows from 2x2 to 3x3 to 4x4 - complexity increases",
+      "phase_gif": "assets/L3/grid_size_progression_phase.gif",
+      "intensity_gif": "assets/L3/grid_size_progression_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_brightness_gradient_x",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Brightness Gradient (Rotating)",
+      "description": "Four spots with brightness gradient 1:2:3:4 - gradient direction rotates",
+      "phase_gif": "assets/L3/spots_brightness_gradient_x_phase.gif",
+      "intensity_gif": "assets/L3/spots_brightness_gradient_x_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_brightness_ratio_2x2",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "2x2 Brightness Ratio Sweep",
+      "description": "Four spots, one corner brightens - ratio sweeps from 1:1:1:1 to 4:1:1:1",
+      "phase_gif": "assets/L3/spots_brightness_ratio_2x2_phase.gif",
+      "intensity_gif": "assets/L3/spots_brightness_ratio_2x2_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_checkerboard_brightness",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Checkerboard Brightness Pattern",
+      "description": "3x3 grid with alternating bright/dim spots - phase compensates for non-uniformity",
+      "phase_gif": "assets/L3/spots_checkerboard_brightness_phase.gif",
+      "intensity_gif": "assets/L3/spots_checkerboard_brightness_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_center_bright",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Center Spot Brightening",
+      "description": "3x3 grid, center spot brightness increases - ratio 1:1 to 5:1",
+      "phase_gif": "assets/L3/spots_center_bright_phase.gif",
+      "intensity_gif": "assets/L3/spots_center_bright_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_diagonal_line",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Diagonal Line of Spots",
+      "description": "Five spots along diagonal - spacing increases from tight to wide",
+      "phase_gif": "assets/L3/spots_diagonal_line_phase.gif",
+      "intensity_gif": "assets/L3/spots_diagonal_line_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_L_shape",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "L-Shaped Spot Array",
+      "description": "Six spots forming L shape - asymmetric arrangement rotates",
+      "phase_gif": "assets/L3/spots_L_shape_phase.gif",
+      "intensity_gif": "assets/L3/spots_L_shape_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_circle_arrangement",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Circular Arrangement",
+      "description": "Eight spots arranged in circle - radius sweeps from small to large",
+      "phase_gif": "assets/L3/spots_circle_arrangement_phase.gif",
+      "intensity_gif": "assets/L3/spots_circle_arrangement_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_asymmetric_cross",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Asymmetric Cross",
+      "description": "Five spots in cross pattern - arms at different lengths extend outward",
+      "phase_gif": "assets/L3/spots_asymmetric_cross_phase.gif",
+      "intensity_gif": "assets/L3/spots_asymmetric_cross_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_triangle_vertices",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Triangle Vertices",
+      "description": "Three spots at triangle corners - triangle rotates and scales",
+      "phase_gif": "assets/L3/spots_triangle_vertices_phase.gif",
+      "intensity_gif": "assets/L3/spots_triangle_vertices_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_random_4",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Four Random Spots",
+      "description": "Four spots at random positions - phase appears noisy, no obvious structure",
+      "phase_gif": "assets/L3/spots_random_4_phase.gif",
+      "intensity_gif": "assets/L3/spots_random_4_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_random_6",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Six Random Spots",
+      "description": "Six spots randomly distributed - more complex phase optimization",
+      "phase_gif": "assets/L3/spots_random_6_phase.gif",
+      "intensity_gif": "assets/L3/spots_random_6_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_random_to_grid",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Random to Grid Transition",
+      "description": "Four spots morph from random positions to 2x2 grid - watch phase organize",
+      "phase_gif": "assets/L3/spots_random_to_grid_phase.gif",
+      "intensity_gif": "assets/L3/spots_random_to_grid_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_varying_size_3x3",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "3x3 Varying Spot Sizes",
+      "description": "Nine spots with different radii - center largest, corners smallest",
+      "phase_gif": "assets/L3/spots_varying_size_3x3_phase.gif",
+      "intensity_gif": "assets/L3/spots_varying_size_3x3_intensity.gif",
+      "parameters": {}
+    },
+    {
+      "id": "spots_dense_cluster",
+      "level": 3,
+      "category": "spot_arrays",
+      "name": "Dense Spot Cluster",
+      "description": "Nine spots tightly clustered in center - tests GS resolution limits",
+      "phase_gif": "assets/L3/spots_dense_cluster_phase.gif",
+      "intensity_gif": "assets/L3/spots_dense_cluster_intensity.gif",
+      "parameters": {}
     }
   ],
-  "generated_at": "2026-01-20T21:23:17.698645",
+  "generated_at": "2026-01-20T22:50:32.158517",
   "version": "1.0.0"
 }
