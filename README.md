@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="static/icon.svg" alt="SLM-Guessr" width="128" height="128" />
+</p>
+
 # SLM-Guessr
 
 An educational web application for training intuition on Spatial Light Modulator (SLM) phase masks and their corresponding 2D FFT intensity patterns.
